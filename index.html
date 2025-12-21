@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>AI Pronunciation Checker</title>
+  <title>Pronunciation Checker – Phase 2</title>
 
   <style>
 
@@ -16,85 +16,67 @@
 
       font-family: Arial, sans-serif;
 
-      background: #f4f6fb;
+      background: #f4f6f8;
 
-      display: flex;
-
-      justify-content: center;
-
-      align-items: center;
-
-      min-height: 100vh;
+      padding: 30px;
 
     }
 
-    .card {
+    .app {
+
+      max-width: 700px;
+
+      margin: auto;
 
       background: #fff;
 
-      width: 420px;
-
-      padding: 24px;
+      padding: 25px;
 
       border-radius: 12px;
 
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 
     }
 
-    h2 { text-align: center; }
+    h1 {
+
+      text-align: center;
+
+    }
 
     textarea {
 
       width: 100%;
 
-      height: 80px;
+      padding: 12px;
+
+      font-size: 16px;
 
       margin-top: 10px;
-
-      padding: 10px;
-
-      border-radius: 8px;
-
-      border: 1px solid #ccc;
-
-      resize: none;
 
     }
 
     button {
 
-      width: 100%;
-
-      padding: 12px;
-
-      margin-top: 12px;
-
-      border: none;
-
-      border-radius: 8px;
+      padding: 12px 20px;
 
       font-size: 16px;
+
+      margin-top: 15px;
 
       cursor: pointer;
 
     }
 
-    .record { background: #4f46e5; color: white; }
-
-    .stop { background: #dc2626; color: white; display:none; }
-
     .result {
 
-      margin-top: 16px;
+      margin-top: 20px;
 
-      background: #f9fafb;
+      background: #eef2ff;
 
-      padding: 12px;
+      padding: 15px;
 
       border-radius: 8px;
-
-      font-size: 14px;
 
     }
 
@@ -104,11 +86,13 @@
 
       font-weight: bold;
 
-      text-align: center;
-
       margin-top: 10px;
 
     }
+
+    .good { color: green; }
+
+    .bad { color: red; }
 
   </style>
 
@@ -116,142 +100,145 @@
 
 <body>
 
+  <div class="app">
 
+    <h1>?? Pronunciation Checker</h1>
 
-<div class="card">
+<label><strong>Target Text (paste or edit):</strong></label>
 
-  <h2>?? Pronunciation Checker</h2>
-
-
-
-  <label>Target Sentence</label>
-
-  <textarea id="target" placeholder="Type the sentence here..."></textarea>
+<textarea id="targetText">I am preparing for my future studies.</textarea>
 
 
 
-  <button class="record" id="startBtn">Start Recording</button>
+<button onclick="startRecording()">?? Start Recording</button>
 
-  <button class="stop" id="stopBtn">Stop Recording</button>
+<button onclick="stopRecording()">? Stop</button>
 
 
 
-  <div class="result" id="result">Your spoken text will appear here.</div>
+<div class="result">
 
-  <div class="score" id="score"></div>
+  <p><strong>Your Speech:</strong></p>
+
+  <p id="speechText">-</p>
+
+  <div class="score" id="score">Score: -</div>
+
+<div id="feedback"></div>
 
 </div>
 
+  <script>
 
+    let recognition;
 
-<script>
-
-  const startBtn = document.getElementById('startBtn');
-
-  const stopBtn = document.getElementById('stopBtn');
-
-  const resultDiv = document.getElementById('result');
-
-  const scoreDiv = document.getElementById('score');
-
-  const targetInput = document.getElementById('target');
+    let finalTranscript = "";
 
 
 
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if ('webkitSpeechRecognition' in window) {
+
+      recognition = new webkitSpeechRecognition();
+
+      recognition.lang = 'en-US';
+
+      recognition.continuous = false;
+
+      recognition.interimResults = false;
 
 
 
-  if (!SpeechRecognition) {
+      recognition.onresult = function(event) {
 
-    alert('Speech Recognition not supported. Use Google Chrome.');
+        finalTranscript = event.results[0][0].transcript;
 
-  }
+        document.getElementById('speechText').innerText = finalTranscript;
 
+        evaluatePronunciation();
 
-
-  const recognition = new SpeechRecognition();
-
-  recognition.lang = 'en-US';
-
-  recognition.interimResults = false;
+      };
 
 
 
-  startBtn.onclick = () => {
+      recognition.onerror = function(e) {
 
-    recognition.start();
+        alert('Speech recognition error');
 
-    startBtn.style.display = 'none';
+      };
 
-    stopBtn.style.display = 'block';
+    } else {
 
-    resultDiv.innerText = 'Listening...';
-
-    scoreDiv.innerText = '';
-
-  };
-
-
-
-  stopBtn.onclick = () => {
-
-    recognition.stop();
-
-    stopBtn.style.display = 'none';
-
-    startBtn.style.display = 'block';
-
-  };
-
-
-
-  recognition.onresult = (event) => {
-
-    const spoken = event.results[0][0].transcript.toLowerCase();
-
-    const target = targetInput.value.toLowerCase();
-
-
-
-    resultDiv.innerHTML = `<strong>You said:</strong> ${spoken}`;
-
-
-
-    let score = similarity(spoken, target);
-
-    scoreDiv.innerText = `Score: ${score}%`;
-
-  };
-
-
-
-  function similarity(a, b) {
-
-    if (!a || !b) return 0;
-
-    let longer = a.length > b.length ? a : b;
-
-    let shorter = a.length > b.length ? b : a;
-
-    let same = 0;
-
-
-
-    for (let i = 0; i < shorter.length; i++) {
-
-      if (shorter[i] === longer[i]) same++;
+      alert('Speech Recognition not supported');
 
     }
 
-    return Math.round((same / longer.length) * 100);
-
-  }
-
-</script>
 
 
+    function startRecording() {
+
+      finalTranscript = "";
+
+      recognition.start();
+
+    }
+
+
+
+    function stopRecording() {
+
+      recognition.stop();
+
+    }
+
+
+
+    function evaluatePronunciation() {
+
+      const target = document.getElementById('targetText').value.toLowerCase();
+
+      const spoken = finalTranscript.toLowerCase();
+
+
+
+      const targetWords = target.split(' ');
+
+      const spokenWords = spoken.split(' ');
+
+
+
+      let match = 0;
+
+      targetWords.forEach(word => {
+
+        if (spokenWords.includes(word)) match++;
+
+      });
+
+
+
+      const score = Math.round((match / targetWords.length) * 100);
+
+      document.getElementById('score').innerText = `Score: ${score}%`;
+
+
+
+      let feedback = "";
+
+      if (score > 80) feedback = "<p class='good'>Excellent pronunciation!</p>";
+
+      else if (score > 50) feedback = "<p>Good, but some words need clarity.</p>";
+
+      else feedback = "<p class='bad'>Try again. Focus on each word clearly.</p>";
+
+
+
+    document.getElementById('feedback').innerHTML = feedback;
+
+    }
+
+  </script>
 
 </body>
 
 </html>
+
