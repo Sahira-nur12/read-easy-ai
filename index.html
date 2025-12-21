@@ -114,7 +114,9 @@
 
 <button onclick="stopRecording()">? Stop</button>
 
+<button onclick="analyzeWithAI()">?? Analyze with AI</button>
 
+<div id="aiFeedback" style="margin-top:10px; color:#555;"></div>
 
 <div class="result">
 
@@ -198,7 +200,13 @@
 
       const spoken = finalTranscript.toLowerCase();
 
+   function analyzeWithAI() {
 
+    document.getElementById("aiFeedback").innerText =
+
+    "?? AI server not connected yet (frontend ready)";
+
+}
 
       const targetWords = target.split(' ');
 
