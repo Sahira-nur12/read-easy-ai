@@ -212,7 +212,7 @@ document.getElementById("analyzeBtn").onclick = async () => {
 
       headers: { "Content-Type": "application/json" },
 
-      body: JSON.stringify({ text })
+      body: JSON.stringify({ transcript: document.getElementById("transcript").value
 
     });
 
@@ -241,6 +241,7 @@ document.getElementById("analyzeBtn").onclick = async () => {
 </body>
 
 </html>
+
 
 
 
