@@ -842,23 +842,4 @@ const HTML_CONTENT = `<!DOCTYPE html>
     </script>
 </body>
 </html>`;
-export default {
-  async fetch(request, env) {
-    const url = new URL(request.url);
 
-    if (url.pathname === '/' || url.pathname === '/index.html') {
-      return new Response(HTML_CONTENT, {
-        headers: { 'Content-Type': 'text/html;charset=UTF-8' }
-      });
-    }
-
-    if (url.pathname === '/api/check-pronunciation' && request.method === 'POST') {
-      try {
-        const { phrase } = await request.json();
-        
-        if (!phrase) {
-          return new Response(JSON.stringify({ error: 'Phrase is required' }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' }
-          });
-        }
