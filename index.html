@@ -327,6 +327,65 @@
                 recordBtn.disabled = false;
                 listenBtn.disabled = false;
             }
+            function analyzePronunciation(expected, actual) {
+            const expectedWords = expected.toLowerCase().replace(/[.,!?]/g, '').split(/\s+/);
+            const actualWords = actual.toLowerCase().replace(/[.,!?]/g, '').split(/\s+/);
+            
+            const analysis = { correct: 0, incorrect: 0, missing: 0, words: [], totalScore: 0 };
+
+            expectedWords.forEach((word, index) => {
+                const actualWord = actualWords[index];
+                let status = 'missing';
+                let score = 0;
+                
+                if (actualWord) {
+                    const distance = levenshteinDistance(actualWord, word);
+                    const maxLen = Math.max(word.length, actualWord.length);
+                    const similarity = ((maxLen - distance) / maxLen) * 100;
+                    
+                    // Lebih strict: hanya exact match atau sangat mirip (95%+) yang dianggap correct
+                    if (actualWord === word) {
+                        status = 'correct';
+                        score = 100;
+                        analysis.correct++;
+                    } else if (similarity >= 95 && distance === 1) {
+                        status = 'correct';
+                        score = 95;
+                        analysis.correct++;
+                    } else if (similarity >= 70) {
+                        status = 'incorrect';
+                        score = similarity;
+                        analysis.incorrect++;
+                    } else {
+                        status = 'incorrect';
+                        score = Math.max(0, similarity);
+                        analysis.incorrect++;
+                    }
+                } else {
+                    analysis.missing++;
+                    score = 0;
+                }
+                
+                analysis.totalScore += score;
+                analysis.words.push({ 
+                    expected: word, 
+                    actual: actualWord || '', 
+                    status: status,
+                    score: Math.round(score)
+                });
+            });
+
+            // Calculate realistic accuracy based on individual word scores
+            analysis.accuracy = Math.round(analysis.totalScore / expectedWords.length);
+            
+            // Penalty for missing or extra words
+            if (actualWords.length < expectedWords.length) {
+                const missingPenalty = ((expectedWords.length - actualWords.length) / expectedWords.length) * 20;
+                analysis.accuracy = Math.max(0, analysis.accuracy - Math.round(missingPenalty));
+            }
+            
+            return analysis;
+        }
         }
 
         async function transcribeAudio() {
@@ -351,34 +410,7 @@
             });
         }
 
-        function analyzePronunciation(expected, actual) {
-            const expectedWords = expected.toLowerCase().split(/\s+/);
-            const actualWords = actual.toLowerCase().split(/\s+/);
-            
-            const analysis = { correct: 0, incorrect: 0, missing: 0, words: [] };
-
-            expectedWords.forEach((word, index) => {
-                const actualWord = actualWords[index];
-                let status = 'missing';
-                
-                if (actualWord) {
-                    if (actualWord === word || levenshteinDistance(actualWord, word) <= 2) {
-                        status = 'correct';
-                        analysis.correct++;
-                    } else {
-                        status = 'incorrect';
-                        analysis.incorrect++;
-                    }
-                } else {
-                    analysis.missing++;
-                }
-                
-                analysis.words.push({ expected: word, actual: actualWord || '', status: status });
-            });
-
-            const totalWords = expectedWords.length;
-            analysis.accuracy = Math.round((analysis.correct / totalWords) * 100);
-            return analysis;
+       
         }
 
         function levenshteinDistance(a, b) {
@@ -557,3 +589,4 @@
     </script>
 </body>
 </html>
+
