@@ -1,0 +1,9 @@
+# File: netlify.toml (taruh di root folder, sejajar dengan index.html)
+
+[build]
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
