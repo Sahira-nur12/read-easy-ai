@@ -490,9 +490,9 @@
         }
 
         async function getDefinition(word) {
-            if (!API_KEY || API_KEY === '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
-') {
-                return `Arti: [Masukkan API Key untuk terjemahan otomatis]\nContoh: The ${word} is important.`;
+            if (!API_KEY || API_KEY === 'YOUR API KEY') {
+                return `Arti: [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
+]\nContoh: The ${word} is important.`;
             }
 
             const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -530,9 +530,9 @@
             readingResult.classList.add('show');
 
             try {
-                if (!API_KEY || API_KEY === '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
-') {
-                    readingResult.innerHTML = `📌 <strong>Ringkasan:</strong>\n\nMasukkan OpenAI API Key untuk menggunakan fitur AI summary.\n\nUntuk demo, ini adalah teks asli:\n\n${currentText}`;
+                if (!API_KEY || API_KEY === 'YOUR API KEY') {
+                    readingResult.innerHTML = `📌 <strong>Ringkasan:</strong>\n\n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
+:\n\n${currentText}`;
                     return;
                 }
 
@@ -569,4 +569,5 @@
     </script>
 </body>
 </html>
+
 
