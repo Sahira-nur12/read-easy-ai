@@ -5,11 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Learning Assistant</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -27,305 +23,112 @@
             width: 100%;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
-        h1 {
-            color: #333;
-            margin-bottom: 10px;
-            text-align: center;
-        }
+        h1 { color: #333; margin-bottom: 10px; text-align: center; }
         .mode-selector {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-            background: #f0f0f0;
-            padding: 5px;
-            border-radius: 10px;
+            display: flex; gap: 10px; margin-bottom: 30px;
+            background: #f0f0f0; padding: 5px; border-radius: 10px;
         }
         .mode-btn {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            background: transparent;
-            transition: all 0.3s;
+            flex: 1; padding: 12px; border: none; border-radius: 8px;
+            font-size: 14px; font-weight: bold; cursor: pointer;
+            background: transparent; transition: all 0.3s;
         }
         .mode-btn.active {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
-        .mode-content {
-            display: none;
-        }
-        .mode-content.active {
-            display: block;
-        }
-        .input-group {
-            margin-bottom: 20px;
-        }
+        .mode-content { display: none; }
+        .mode-content.active { display: block; }
+        .input-group { margin-bottom: 20px; }
         textarea {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            font-size: 16px;
-            resize: vertical;
-            min-height: 100px;
-            font-family: inherit;
+            width: 100%; padding: 15px; border: 2px solid #ddd;
+            border-radius: 10px; font-size: 16px; resize: vertical;
+            min-height: 100px; font-family: inherit;
         }
-        textarea:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
+        textarea:focus { outline: none; border-color: #667eea; }
+        .btn-group { display: flex; gap: 10px; margin-bottom: 20px; }
         button {
-            flex: 1;
-            padding: 15px;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
+            flex: 1; padding: 15px; border: none; border-radius: 10px;
+            font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s;
         }
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-        .btn-secondary {
-            background: #f0f0f0;
-            color: #333;
-        }
-        .btn-secondary:hover {
-            background: #e0e0e0;
-        }
-        .btn-success {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            color: white;
-        }
-        .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(17, 153, 142, 0.4);
-        }
-        .btn-listen {
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-            color: white;
-        }
-        .btn-listen:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
-        }
-        .btn-danger {
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-            color: white;
-        }
-        .btn-danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
-        }
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none !important;
-        }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
+        .btn-secondary { background: #f0f0f0; color: #333; }
+        .btn-secondary:hover { background: #e0e0e0; }
+        .btn-success { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; }
+        .btn-success:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(17, 153, 142, 0.4); }
+        .btn-listen { background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); color: white; }
+        .btn-listen:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4); }
+        .btn-danger { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; }
+        .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4); }
+        button:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
         .result {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 20px;
-            white-space: pre-wrap;
-            line-height: 1.6;
-            display: none;
+            background: #f8f9fa; border-radius: 10px; padding: 20px;
+            margin-top: 20px; white-space: pre-wrap; line-height: 1.6; display: none;
         }
-        .result.show {
-            display: block;
-        }
-        .loading {
-            text-align: center;
-            color: #667eea;
-            font-weight: bold;
-        }
-        .error {
-            background: #fee;
-            color: #c33;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
-            display: none;
-        }
-        .error.show {
-            display: block;
-        }
+        .result.show { display: block; }
+        .loading { text-align: center; color: #667eea; font-weight: bold; }
+        .error { background: #fee; color: #c33; padding: 15px; border-radius: 10px; margin-top: 20px; display: none; }
+        .error.show { display: block; }
         .recording-indicator {
-            display: none;
-            text-align: center;
-            padding: 10px;
-            background: #ffebee;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            color: #c62828;
-            font-weight: bold;
-            animation: pulse 1.5s infinite;
+            display: none; text-align: center; padding: 10px; background: #ffebee;
+            border-radius: 8px; margin-bottom: 15px; color: #c62828;
+            font-weight: bold; animation: pulse 1.5s infinite;
         }
-        .recording-indicator.active {
-            display: block;
-        }
+        .recording-indicator.active { display: block; }
         .listening-indicator {
-            display: none;
-            text-align: center;
-            padding: 10px;
-            background: #e3f2fd;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            color: #1976d2;
-            font-weight: bold;
-            animation: pulse 1.5s infinite;
+            display: none; text-align: center; padding: 10px; background: #e3f2fd;
+            border-radius: 8px; margin-bottom: 15px; color: #1976d2;
+            font-weight: bold; animation: pulse 1.5s infinite;
         }
-        .listening-indicator.active {
-            display: block;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-        
+        .listening-indicator.active { display: block; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
         .practice-guide {
-            background: #fff9e6;
-            border-left: 4px solid #ffc107;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-            font-size: 14px;
+            background: #fff9e6; border-left: 4px solid #ffc107;
+            padding: 15px; margin-bottom: 20px; border-radius: 5px; font-size: 14px;
         }
-        .practice-guide h3 {
-            color: #f57c00;
-            margin-bottom: 10px;
-            font-size: 16px;
-        }
-        .practice-guide ol {
-            margin-left: 20px;
-            line-height: 1.8;
-        }
-        .practice-guide strong {
-            color: #e65100;
-        }
-        
-        /* Pronunciation Feedback Styles */
-        .feedback-container {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 20px;
-        }
+        .practice-guide h3 { color: #f57c00; margin-bottom: 10px; font-size: 16px; }
+        .practice-guide ol { margin-left: 20px; line-height: 1.8; }
+        .practice-guide strong { color: #e65100; }
+        .feedback-container { background: white; border-radius: 10px; padding: 20px; margin-top: 20px; }
         .accuracy-score {
-            text-align: center;
-            padding: 20px;
+            text-align: center; padding: 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 10px;
-            margin-bottom: 20px;
+            color: white; border-radius: 10px; margin-bottom: 20px;
         }
-        .accuracy-score h2 {
-            font-size: 48px;
-            margin: 0;
-        }
-        .accuracy-score p {
-            margin: 5px 0 0 0;
-            font-size: 18px;
-        }
-        .word-analysis {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 20px;
-        }
+        .accuracy-score h2 { font-size: 48px; margin: 0; }
+        .accuracy-score p { margin: 5px 0 0 0; font-size: 18px; }
+        .word-analysis { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
         .word-box {
-            padding: 10px 15px;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 16px;
-            transition: all 0.3s;
+            padding: 10px 15px; border-radius: 8px;
+            font-weight: bold; font-size: 16px; transition: all 0.3s;
         }
-        .word-correct {
-            background: #d4edda;
-            color: #155724;
-            border: 2px solid #28a745;
-        }
-        .word-incorrect {
-            background: #f8d7da;
-            color: #721c24;
-            border: 2px solid #dc3545;
-        }
-        .word-missing {
-            background: #fff3cd;
-            color: #856404;
-            border: 2px solid #ffc107;
-        }
-        
+        .word-correct { background: #d4edda; color: #155724; border: 2px solid #28a745; }
+        .word-incorrect { background: #f8d7da; color: #721c24; border: 2px solid #dc3545; }
+        .word-missing { background: #fff3cd; color: #856404; border: 2px solid #ffc107; }
         .text-display {
-            background: #fff;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
-            line-height: 1.8;
-            font-size: 16px;
-            max-height: 400px;
-            overflow-y: auto;
+            background: #fff; border: 2px solid #ddd; border-radius: 10px;
+            padding: 20px; margin: 20px 0; line-height: 1.8;
+            font-size: 16px; max-height: 400px; overflow-y: auto;
         }
         .word-highlight {
-            background: #fff9c4;
-            padding: 2px 4px;
-            border-radius: 3px;
-            cursor: pointer;
-            transition: all 0.2s;
-            position: relative;
+            background: #fff9c4; padding: 2px 4px; border-radius: 3px;
+            cursor: pointer; transition: all 0.2s; position: relative;
         }
-        .word-highlight:hover {
-            background: #ffeb3b;
-            transform: scale(1.05);
-        }
+        .word-highlight:hover { background: #ffeb3b; transform: scale(1.05); }
         .tooltip {
-            position: fixed;
-            background: #333;
-            color: white;
-            padding: 12px 16px;
-            border-radius: 8px;
-            font-size: 14px;
-            max-width: 300px;
-            z-index: 1000;
+            position: fixed; background: #333; color: white;
+            padding: 12px 16px; border-radius: 8px; font-size: 14px;
+            max-width: 300px; z-index: 1000;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            display: none;
-            white-space: pre-wrap;
-            line-height: 1.5;
+            display: none; white-space: pre-wrap; line-height: 1.5;
         }
-        .tooltip.show {
-            display: block;
-        }
+        .tooltip.show { display: block; }
         .info-box {
-            background: #e3f2fd;
-            border-left: 4px solid #2196f3;
-            padding: 15px;
-            margin: 15px 0;
-            border-radius: 5px;
-            font-size: 14px;
+            background: #e3f2fd; border-left: 4px solid #2196f3;
+            padding: 15px; margin: 15px 0; border-radius: 5px; font-size: 14px;
         }
-        .timer {
-            text-align: center;
-            font-size: 24px;
-            font-weight: bold;
-            color: #c62828;
-            padding: 10px;
-        }
+        .timer { text-align: center; font-size: 24px; font-weight: bold; color: #c62828; padding: 10px; }
     </style>
 </head>
 <body>
@@ -337,15 +140,14 @@
             <button class="mode-btn" data-mode="reading">📖 Reading Comprehension</button>
         </div>
 
-        <!-- Pronunciation Mode -->
         <div class="mode-content active" id="pronunciation-mode">
             <div class="practice-guide">
                 <h3>📝 Practice Steps:</h3>
                 <ol>
-                    <li><strong>Listen to Model</strong> - Dengar pronunciation yang benar terlebih dahulu</li>
-                    <li><strong>Record Your Voice</strong> - Baca text dan rekam suara kamu sampai selesai</li>
-                    <li><strong>Stop Recording</strong> - Klik stop setelah selesai membaca</li>
-                    <li><strong>Check Pronunciation</strong> - Dapatkan feedback dengan highlight kesalahan</li>
+                    <li><strong>Listen to Model</strong> - Dengar pronunciation yang benar</li>
+                    <li><strong>Record Your Voice</strong> - Baca text dan rekam sampai selesai</li>
+                    <li><strong>Stop Recording</strong> - Klik stop setelah selesai</li>
+                    <li><strong>Check Pronunciation</strong> - Dapatkan feedback AI</li>
                 </ol>
             </div>
 
@@ -359,7 +161,7 @@
             </div>
             
             <div class="input-group">
-                <textarea id="phraseInput" placeholder="Type a phrase to practice pronunciation..."></textarea>
+                <textarea id="phraseInput" placeholder="Type a phrase to practice pronunciation...">Hello, how are you today? I am learning English pronunciation.</textarea>
             </div>
             
             <div class="btn-group">
@@ -376,14 +178,13 @@
             <div class="error" id="pronunciationError"></div>
         </div>
 
-        <!-- Reading Comprehension Mode -->
         <div class="mode-content" id="reading-mode">
             <div class="info-box">
-                💡 <strong>Cara Pakai:</strong> Paste teks bahasa Inggris, lalu klik kata yang sulit untuk lihat artinya. Gunakan tombol Summary untuk ringkasan!
+                💡 <strong>Cara Pakai:</strong> Paste teks bahasa Inggris, klik kata yang sulit untuk terjemahan, atau generate summary!
             </div>
             
             <div class="input-group">
-                <textarea id="readingInput" placeholder="Paste your English text here..." rows="6"></textarea>
+                <textarea id="readingInput" placeholder="Paste your English text here..." rows="6">The Amazon rainforest is the largest tropical rainforest in the world. It covers much of northwestern Brazil and extends into Colombia, Peru and other South American countries. Scientists believe that millions of species still remain undiscovered in the Amazon.</textarea>
             </div>
             
             <div class="btn-group">
@@ -400,6 +201,8 @@
     </div>
 
     <script>
+        const API_KEY = 'YOUR_OPENAI_API_KEY_HERE'; // GANTI DENGAN API KEY KAMU!
+
         const modeBtns = document.querySelectorAll('.mode-btn');
         const modeContents = document.querySelectorAll('.mode-content');
         
@@ -413,13 +216,8 @@
             });
         });
 
-        // ==================== PRONUNCIATION MODE ====================
-        let mediaRecorder;
-        let audioChunks = [];
-        let recordedAudioBlob;
-        let isListening = false;
-        let recordingStartTime;
-        let timerInterval;
+        let mediaRecorder, audioChunks = [], recordedAudioBlob, isListening = false;
+        let recordingStartTime, timerInterval;
         
         const phraseInput = document.getElementById('phraseInput');
         const checkBtn = document.getElementById('checkBtn');
@@ -439,89 +237,61 @@
 
         function listenToModel() {
             const phrase = phraseInput.value.trim();
-            
-            if (!phrase) {
-                showPronunciationError('Please enter a phrase first!');
-                return;
-            }
-
+            if (!phrase) { showPronunciationError('Please enter a phrase first!'); return; }
             if (isListening) {
                 window.speechSynthesis.cancel();
                 isListening = false;
                 listenBtn.textContent = '🔊 Listen to Model';
-                listenBtn.classList.remove('btn-secondary');
-                listenBtn.classList.add('btn-listen');
+                listenBtn.className = 'btn-listen';
                 listeningIndicator.classList.remove('active');
                 return;
             }
-
             isListening = true;
             listenBtn.textContent = '⏹️ Stop Audio';
-            listenBtn.classList.remove('btn-listen');
-            listenBtn.classList.add('btn-secondary');
+            listenBtn.className = 'btn-secondary';
             listeningIndicator.classList.add('active');
             pronunciationResult.classList.remove('show');
             pronunciationError.classList.remove('show');
-
             const utterance = new SpeechSynthesisUtterance(phrase);
             utterance.lang = 'en-US';
             utterance.rate = 0.8;
-            utterance.pitch = 1.0;
-            
             utterance.onend = () => {
                 isListening = false;
                 listenBtn.textContent = '🔊 Listen to Model';
-                listenBtn.classList.remove('btn-secondary');
-                listenBtn.classList.add('btn-listen');
+                listenBtn.className = 'btn-listen';
                 listeningIndicator.classList.remove('active');
             };
-
             window.speechSynthesis.speak(utterance);
         }
 
         async function startRecording() {
             const phrase = phraseInput.value.trim();
-            
-            if (!phrase) {
-                showPronunciationError('Please enter a phrase first!');
-                return;
-            }
-
+            if (!phrase) { showPronunciationError('Please enter a phrase first!'); return; }
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 mediaRecorder = new MediaRecorder(stream);
                 audioChunks = [];
-
-                mediaRecorder.ondataavailable = (event) => {
-                    audioChunks.push(event.data);
-                };
-
+                mediaRecorder.ondataavailable = (event) => { audioChunks.push(event.data); };
                 mediaRecorder.onstop = () => {
                     recordedAudioBlob = new Blob(audioChunks, { type: 'audio/wav' });
                     stream.getTracks().forEach(track => track.stop());
                 };
-
                 mediaRecorder.start();
                 recordBtn.style.display = 'none';
                 stopBtn.style.display = 'block';
                 recordingIndicator.classList.add('active');
                 pronunciationResult.classList.remove('show');
                 pronunciationError.classList.remove('show');
-                
-                // Start timer
                 recordingStartTime = Date.now();
-                timerInterval = setInterval(updateTimer, 1000);
-                
+                timerInterval = setInterval(() => {
+                    const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+                    const mins = Math.floor(elapsed / 60).toString().padStart(2, '0');
+                    const secs = (elapsed % 60).toString().padStart(2, '0');
+                    recordingTimer.textContent = mins + ':' + secs;
+                }, 1000);
             } catch (error) {
                 showPronunciationError('Could not access microphone: ' + error.message);
             }
-        }
-
-        function updateTimer() {
-            const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
-            const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
-            const seconds = (elapsed % 60).toString().padStart(2, '0');
-            recordingTimer.textContent = minutes + ':' + seconds;
         }
 
         function stopRecording() {
@@ -536,35 +306,21 @@
 
         async function checkPronunciation() {
             const phrase = phraseInput.value.trim();
-            
-            if (!phrase) {
-                showPronunciationError('Please enter a phrase');
-                return;
-            }
-
-            if (!recordedAudioBlob) {
-                showPronunciationError('Please record your voice first!');
-                return;
-            }
+            if (!phrase) { showPronunciationError('Please enter a phrase'); return; }
+            if (!recordedAudioBlob) { showPronunciationError('Please record your voice first!'); return; }
 
             pronunciationResult.classList.remove('show');
             pronunciationError.classList.remove('show');
             checkBtn.disabled = true;
             recordBtn.disabled = true;
             listenBtn.disabled = true;
-            pronunciationResult.innerHTML = '<div class="loading">🤔 Analyzing your pronunciation...</div>';
+            pronunciationResult.innerHTML = '<div class="loading">🤔 Analyzing pronunciation...</div>';
             pronunciationResult.classList.add('show');
 
             try {
-                // Convert audio to text using Web Speech API
                 const transcribedText = await transcribeAudio();
-                
-                // Analyze pronunciation
                 const analysis = analyzePronunciation(phrase, transcribedText);
-                
-                // Display results
                 displayFeedback(phrase, transcribedText, analysis);
-                
             } catch (err) {
                 pronunciationResult.classList.remove('show');
                 showPronunciationError(err.message);
@@ -576,7 +332,7 @@
         }
 
         async function transcribeAudio() {
-            return new Promise((resolve, reject) => {
+            return new Promise((resolve) => {
                 const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
                 recognition.lang = 'en-US';
                 recognition.continuous = false;
@@ -590,41 +346,25 @@
                     resolve(transcript);
                 };
 
-                recognition.onerror = () => {
-                    // If speech recognition fails, use simulated transcription
-                    resolve(phraseInput.value.trim());
-                };
-
+                recognition.onerror = () => { resolve(phraseInput.value.trim()); };
                 recognition.start();
                 audio.play();
-
-                setTimeout(() => {
-                    recognition.stop();
-                    resolve(phraseInput.value.trim());
-                }, 10000);
+                setTimeout(() => { recognition.stop(); resolve(phraseInput.value.trim()); }, 10000);
             });
         }
 
         function analyzePronunciation(expected, actual) {
-            const expectedWords = expected.toLowerCase().split(/\\s+/);
-            const actualWords = actual.toLowerCase().split(/\\s+/);
+            const expectedWords = expected.toLowerCase().split(/\s+/);
+            const actualWords = actual.toLowerCase().split(/\s+/);
             
-            const analysis = {
-                correct: 0,
-                incorrect: 0,
-                missing: 0,
-                words: []
-            };
+            const analysis = { correct: 0, incorrect: 0, missing: 0, words: [] };
 
             expectedWords.forEach((word, index) => {
                 const actualWord = actualWords[index];
                 let status = 'missing';
                 
                 if (actualWord) {
-                    if (actualWord === word) {
-                        status = 'correct';
-                        analysis.correct++;
-                    } else if (levenshteinDistance(actualWord, word) <= 2) {
+                    if (actualWord === word || levenshteinDistance(actualWord, word) <= 2) {
                         status = 'correct';
                         analysis.correct++;
                     } else {
@@ -635,37 +375,24 @@
                     analysis.missing++;
                 }
                 
-                analysis.words.push({
-                    expected: word,
-                    actual: actualWord || '',
-                    status: status
-                });
+                analysis.words.push({ expected: word, actual: actualWord || '', status: status });
             });
 
             const totalWords = expectedWords.length;
             analysis.accuracy = Math.round((analysis.correct / totalWords) * 100);
-            
             return analysis;
         }
 
         function levenshteinDistance(a, b) {
             const matrix = [];
-            for (let i = 0; i <= b.length; i++) {
-                matrix[i] = [i];
-            }
-            for (let j = 0; j <= a.length; j++) {
-                matrix[0][j] = j;
-            }
+            for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+            for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
             for (let i = 1; i <= b.length; i++) {
                 for (let j = 1; j <= a.length; j++) {
                     if (b.charAt(i - 1) === a.charAt(j - 1)) {
                         matrix[i][j] = matrix[i - 1][j - 1];
                     } else {
-                        matrix[i][j] = Math.min(
-                            matrix[i - 1][j - 1] + 1,
-                            matrix[i][j - 1] + 1,
-                            matrix[i - 1][j] + 1
-                        );
+                        matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j] + 1);
                     }
                 }
             }
@@ -673,57 +400,31 @@
         }
 
         function displayFeedback(expected, actual, analysis) {
-            let feedbackHTML = '<div class="feedback-container">';
-            
-            // Accuracy Score
             const scoreColor = analysis.accuracy >= 80 ? '#28a745' : analysis.accuracy >= 60 ? '#ffc107' : '#dc3545';
-            feedbackHTML += \`
-                <div class="accuracy-score" style="background: \${scoreColor};">
-                    <h2>\${analysis.accuracy}%</h2>
-                    <p>Pronunciation Accuracy</p>
-                </div>
-            \`;
-            
-            // Word Analysis
-            feedbackHTML += '<h3 style="margin-bottom: 15px;">📊 Word-by-Word Analysis:</h3>';
-            feedbackHTML += '<div class="word-analysis">';
+            let html = '<div class="feedback-container">';
+            html += `<div class="accuracy-score" style="background: ${scoreColor};"><h2>${analysis.accuracy}%</h2><p>Pronunciation Accuracy</p></div>`;
+            html += '<h3 style="margin-bottom: 15px;">📊 Word-by-Word Analysis:</h3><div class="word-analysis">';
             
             analysis.words.forEach(word => {
-                let className = 'word-box ';
-                let statusIcon = '';
-                
+                let className = 'word-box ', statusIcon = '';
                 if (word.status === 'correct') {
-                    className += 'word-correct';
-                    statusIcon = ' ✓';
+                    className += 'word-correct'; statusIcon = ' ✓';
                 } else if (word.status === 'incorrect') {
-                    className += 'word-incorrect';
-                    statusIcon = ' ✗';
+                    className += 'word-incorrect'; statusIcon = ' ✗';
                 } else {
-                    className += 'word-missing';
-                    statusIcon = ' ?';
+                    className += 'word-missing'; statusIcon = ' ?';
                 }
-                
-                feedbackHTML += \`<div class="\${className}">\${word.expected}\${statusIcon}</div>\`;
+                html += `<div class="${className}">${word.expected}${statusIcon}</div>`;
             });
             
-            feedbackHTML += '</div>';
+            html += '</div>';
+            html += `<div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">`;
+            html += `<p><strong>Expected:</strong> ${expected}</p><p><strong>You said:</strong> ${actual}</p>`;
+            html += `<p style="margin-top: 10px;"><span style="color: #28a745;">✓ Correct: ${analysis.correct}</span> | `;
+            html += `<span style="color: #dc3545;">✗ Incorrect: ${analysis.incorrect}</span> | `;
+            html += `<span style="color: #ffc107;">? Missing: ${analysis.missing}</span></p></div></div>`;
             
-            // Summary
-            feedbackHTML += \`
-                <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                    <p><strong>Expected:</strong> \${expected}</p>
-                    <p><strong>You said:</strong> \${actual}</p>
-                    <p style="margin-top: 10px;">
-                        <span style="color: #28a745;">✓ Correct: \${analysis.correct}</span> | 
-                        <span style="color: #dc3545;">✗ Incorrect: \${analysis.incorrect}</span> | 
-                        <span style="color: #ffc107;">? Missing: \${analysis.missing}</span>
-                    </p>
-                </div>
-            \`;
-            
-            feedbackHTML += '</div>';
-            
-            pronunciationResult.innerHTML = feedbackHTML;
+            pronunciationResult.innerHTML = html;
         }
 
         function showPronunciationError(message) {
@@ -731,7 +432,7 @@
             pronunciationError.classList.add('show');
         }
 
-        // ==================== READING COMPREHENSION MODE ====================
+        // READING COMPREHENSION
         const readingInput = document.getElementById('readingInput');
         const analyzeBtn = document.getElementById('analyzeBtn');
         const summaryBtn = document.getElementById('summaryBtn');
@@ -741,28 +442,22 @@
         const tooltip = document.getElementById('tooltip');
 
         let currentText = '';
-        let difficultWords = [];
-
         analyzeBtn.addEventListener('click', analyzeText);
         summaryBtn.addEventListener('click', generateSummary);
 
         function analyzeText() {
             currentText = readingInput.value.trim();
-            
-            if (!currentText) {
-                showReadingError('Please enter some text to analyze');
-                return;
-            }
+            if (!currentText) { showReadingError('Please enter text'); return; }
 
             readingError.classList.remove('show');
             readingResult.classList.remove('show');
             
-            const words = currentText.match(/\\b[a-zA-Z]+\\b/g) || [];
-            difficultWords = [...new Set(words.filter(word => word.length >= 8))];
+            const words = currentText.match(/\b[a-zA-Z]+\b/g) || [];
+            const difficultWords = [...new Set(words.filter(word => word.length >= 8))];
             
             let highlightedText = currentText;
             difficultWords.forEach(word => {
-                const regex = new RegExp(\`\\\\b(\${word})\\\\b\`, 'gi');
+                const regex = new RegExp(`\\b(${word})\\b`, 'gi');
                 highlightedText = highlightedText.replace(regex, '<span class="word-highlight" data-word="$1">$1</span>');
             });
             
@@ -786,18 +481,36 @@
             tooltip.classList.add('show');
             
             try {
-                const response = await fetch('/api/get-definition', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ word })
-                });
-
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.error);
-                tooltip.innerHTML = \`<strong>\${word}</strong>\\n\\n\${data.definition}\`;
+                const definition = await getDefinition(word);
+                tooltip.innerHTML = `<strong>${word}</strong>\n\n${definition}`;
             } catch (err) {
                 tooltip.innerHTML = '❌ Could not load definition';
             }
+        }
+
+        async function getDefinition(word) {
+            if (!API_KEY || API_KEY === 'YOUR_OPENAI_API_KEY_HERE') {
+                return `Arti: [Masukkan API Key untuk terjemahan otomatis]\nContoh: The ${word} is important.`;
+            }
+
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${API_KEY}`
+                },
+                body: JSON.stringify({
+                    model: 'gpt-3.5-turbo',
+                    messages: [{
+                        role: 'user',
+                        content: `Berikan definisi singkat kata "${word}" dalam bahasa Indonesia:\n- Arti: [terjemahan]\n- Contoh: [kalimat bahasa Inggris]`
+                    }],
+                    max_tokens: 150
+                })
+            });
+
+            const data = await response.json();
+            return data.choices[0]?.message?.content || 'Unable to get definition';
         }
 
         document.addEventListener('click', (e) => {
@@ -807,10 +520,7 @@
         });
 
         async function generateSummary() {
-            if (!currentText) {
-                showReadingError('No text to summarize');
-                return;
-            }
+            if (!currentText) { showReadingError('No text to summarize'); return; }
 
             readingError.classList.remove('show');
             summaryBtn.disabled = true;
@@ -818,15 +528,29 @@
             readingResult.classList.add('show');
 
             try {
-                const response = await fetch('/api/generate-summary', {
+                if (!API_KEY || API_KEY === 'YOUR_OPENAI_API_KEY_HERE') {
+                    readingResult.innerHTML = `📌 <strong>Ringkasan:</strong>\n\nMasukkan OpenAI API Key untuk menggunakan fitur AI summary.\n\nUntuk demo, ini adalah teks asli:\n\n${currentText}`;
+                    return;
+                }
+
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: currentText })
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-3.5-turbo',
+                        messages: [{
+                            role: 'user',
+                            content: `Buatkan ringkasan dalam bahasa Indonesia:\n\n${currentText}`
+                        }],
+                        max_tokens: 500
+                    })
                 });
 
                 const data = await response.json();
-                if (!response.ok) throw new Error(data.error);
-                readingResult.innerHTML = data.summary;
+                readingResult.innerHTML = data.choices[0]?.message?.content || 'Unable to generate summary';
             } catch (err) {
                 readingResult.classList.remove('show');
                 showReadingError(err.message);
@@ -841,6 +565,4 @@
         }
     </script>
 </body>
-</html>`;
-
-
+</html>
