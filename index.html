@@ -201,7 +201,8 @@
     </div>
 
     <script>
-        const API_KEY = 'YOUR_OPENAI_API_KEY_HERE'; // GANTI DENGAN API KEY KAMU!
+        const API_KEY = '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
+'; // GANTI DENGAN API KEY KAMU!
 
         const modeBtns = document.querySelectorAll('.mode-btn');
         const modeContents = document.querySelectorAll('.mode-content');
@@ -489,7 +490,8 @@
         }
 
         async function getDefinition(word) {
-            if (!API_KEY || API_KEY === 'YOUR_OPENAI_API_KEY_HERE') {
+            if (!API_KEY || API_KEY === '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
+') {
                 return `Arti: [Masukkan API Key untuk terjemahan otomatis]\nContoh: The ${word} is important.`;
             }
 
@@ -528,7 +530,8 @@
             readingResult.classList.add('show');
 
             try {
-                if (!API_KEY || API_KEY === 'YOUR_OPENAI_API_KEY_HERE') {
+                if (!API_KEY || API_KEY === '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
+') {
                     readingResult.innerHTML = `📌 <strong>Ringkasan:</strong>\n\nMasukkan OpenAI API Key untuk menggunakan fitur AI summary.\n\nUntuk demo, ini adalah teks asli:\n\n${currentText}`;
                     return;
                 }
@@ -566,3 +569,4 @@
     </script>
 </body>
 </html>
+
