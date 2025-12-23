@@ -1,0 +1,15 @@
+{
+  "name": "read-easy-ai",
+  "version": "1.0.0",
+  "description": "AI Learning Assistant with Pronunciation and Reading features",
+  "scripts": {
+    "build": "echo 'No build needed for static site'"
+  },
+  "dependencies": {
+    "openai": "^4.20.0"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
