@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pronunciation Practice</title>
+    <title>AI Learning Assistant</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -23,24 +23,22 @@
             width: 100%;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
-        h1 { color: #333; margin-bottom: 30px; text-align: center; }
-        .practice-guide {
-            background: #fff9e6; border-left: 4px solid #ffc107;
-            padding: 15px; margin-bottom: 20px; border-radius: 5px; font-size: 14px;
+        h1 { color: #333; margin-bottom: 10px; text-align: center; }
+        .mode-selector {
+            display: flex; gap: 10px; margin-bottom: 30px;
+            background: #f0f0f0; padding: 5px; border-radius: 10px;
         }
-        .practice-guide h3 { color: #f57c00; margin-bottom: 10px; font-size: 16px; }
-        .practice-guide ol { margin-left: 20px; line-height: 1.8; }
-        .practice-guide strong { color: #e65100; }
-        .listening-indicator, .recording-indicator {
-            display: none; text-align: center; padding: 10px;
-            border-radius: 8px; margin-bottom: 15px;
-            font-weight: bold; animation: pulse 1.5s infinite;
+        .mode-btn {
+            flex: 1; padding: 12px; border: none; border-radius: 8px;
+            font-size: 14px; font-weight: bold; cursor: pointer;
+            background: transparent; transition: all 0.3s;
         }
-        .listening-indicator { background: #e3f2fd; color: #1976d2; }
-        .recording-indicator { background: #ffebee; color: #c62828; }
-        .listening-indicator.active, .recording-indicator.active { display: block; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
-        .timer { text-align: center; font-size: 24px; font-weight: bold; color: #c62828; padding: 10px; }
+        .mode-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .mode-content { display: none; }
+        .mode-content.active { display: block; }
         .input-group { margin-bottom: 20px; }
         textarea {
             width: 100%; padding: 15px; border: 2px solid #ddd;
@@ -72,9 +70,30 @@
         .loading { text-align: center; color: #667eea; font-weight: bold; }
         .error { background: #fee; color: #c33; padding: 15px; border-radius: 10px; margin-top: 20px; display: none; }
         .error.show { display: block; }
-        .feedback-container { background: white; border-radius: 10px; padding: 20px; }
+        .recording-indicator {
+            display: none; text-align: center; padding: 10px; background: #ffebee;
+            border-radius: 8px; margin-bottom: 15px; color: #c62828;
+            font-weight: bold; animation: pulse 1.5s infinite;
+        }
+        .recording-indicator.active { display: block; }
+        .listening-indicator {
+            display: none; text-align: center; padding: 10px; background: #e3f2fd;
+            border-radius: 8px; margin-bottom: 15px; color: #1976d2;
+            font-weight: bold; animation: pulse 1.5s infinite;
+        }
+        .listening-indicator.active { display: block; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        .practice-guide {
+            background: #fff9e6; border-left: 4px solid #ffc107;
+            padding: 15px; margin-bottom: 20px; border-radius: 5px; font-size: 14px;
+        }
+        .practice-guide h3 { color: #f57c00; margin-bottom: 10px; font-size: 16px; }
+        .practice-guide ol { margin-left: 20px; line-height: 1.8; }
+        .practice-guide strong { color: #e65100; }
+        .feedback-container { background: white; border-radius: 10px; padding: 20px; margin-top: 20px; }
         .accuracy-score {
             text-align: center; padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white; border-radius: 10px; margin-bottom: 20px;
         }
         .accuracy-score h2 { font-size: 48px; margin: 0; }
@@ -87,50 +106,118 @@
         .word-correct { background: #d4edda; color: #155724; border: 2px solid #28a745; }
         .word-incorrect { background: #f8d7da; color: #721c24; border: 2px solid #dc3545; }
         .word-missing { background: #fff3cd; color: #856404; border: 2px solid #ffc107; }
+        .text-display {
+            background: #fff; border: 2px solid #ddd; border-radius: 10px;
+            padding: 20px; margin: 20px 0; line-height: 1.8;
+            font-size: 16px; max-height: 400px; overflow-y: auto;
+        }
+        .word-highlight {
+            background: #fff9c4; padding: 2px 4px; border-radius: 3px;
+            cursor: pointer; transition: all 0.2s; position: relative;
+        }
+        .word-highlight:hover { background: #ffeb3b; transform: scale(1.05); }
+        .tooltip {
+            position: fixed; background: #333; color: white;
+            padding: 12px 16px; border-radius: 8px; font-size: 14px;
+            max-width: 300px; z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: none; white-space: pre-wrap; line-height: 1.5;
+        }
+        .tooltip.show { display: block; }
+        .info-box {
+            background: #e3f2fd; border-left: 4px solid #2196f3;
+            padding: 15px; margin: 15px 0; border-radius: 5px; font-size: 14px;
+        }
+        .timer { text-align: center; font-size: 24px; font-weight: bold; color: #c62828; padding: 10px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🗣️ Pronunciation Practice</h1>
+        <h1>📚 AI Learning Assistant</h1>
         
-        <div class="practice-guide">
-            <h3>📝 Cara Menggunakan:</h3>
-            <ol>
-                <li><strong>Listen to Model</strong> - Dengarkan pronunciation yang benar</li>
-                <li><strong>Start Recording</strong> - Rekam suara Anda membaca teks</li>
-                <li><strong>Stop Recording</strong> - Klik stop setelah selesai</li>
-                <li><strong>Check Pronunciation</strong> - Lihat hasil analisis AI</li>
-            </ol>
+        <div class="mode-selector">
+            <button class="mode-btn active" data-mode="pronunciation">🗣️ Pronunciation</button>
+            <button class="mode-btn" data-mode="reading">📖 Reading Comprehension</button>
         </div>
 
-        <div class="listening-indicator" id="listeningIndicator">
-            🔊 Playing model audio... Listen carefully!
+        <!-- PRONUNCIATION MODE -->
+        <div class="mode-content active" id="pronunciation-mode">
+            <div class="practice-guide">
+                <h3>📝 Practice Steps:</h3>
+                <ol>
+                    <li><strong>Listen to Model</strong> - Dengar pronunciation yang benar</li>
+                    <li><strong>Record Your Voice</strong> - Baca text dan rekam sampai selesai</li>
+                    <li><strong>Stop Recording</strong> - Klik stop setelah selesai</li>
+                    <li><strong>Check Pronunciation</strong> - Dapatkan feedback AI</li>
+                </ol>
+            </div>
+
+            <div class="listening-indicator" id="listeningIndicator">
+                🔊 Playing model audio... Listen carefully!
+            </div>
+
+            <div class="recording-indicator" id="recordingIndicator">
+                <div class="timer" id="recordingTimer">00:00</div>
+                🔴 Recording... Click "Stop Recording" when done
+            </div>
+            
+            <div class="input-group">
+                <textarea id="phraseInput" placeholder="Type a phrase to practice pronunciation...">Hello, how are you today? I am learning English pronunciation.</textarea>
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn-listen" id="listenBtn">🔊 Listen to Model</button>
+                <button class="btn-success" id="recordBtn">🎤 Start Recording</button>
+                <button class="btn-danger" id="stopBtn" style="display:none;">⏹️ Stop Recording</button>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn-primary" id="checkBtn">✅ Check Pronunciation</button>
+            </div>
+            
+            <div class="result" id="pronunciationResult"></div>
+            <div class="error" id="pronunciationError"></div>
         </div>
 
-        <div class="recording-indicator" id="recordingIndicator">
-            <div class="timer" id="recordingTimer">00:00</div>
-            🔴 Recording... Click "Stop Recording" when done
-        </div>
-        
-        <div class="input-group">
-            <textarea id="phraseInput" placeholder="Type a phrase to practice pronunciation...">Hello, how are you today? I am learning English pronunciation.</textarea>
-        </div>
-        
-        <div class="btn-group">
-            <button class="btn-listen" id="listenBtn">🔊 Listen to Model</button>
-            <button class="btn-success" id="recordBtn">🎤 Start Recording</button>
-            <button class="btn-danger" id="stopBtn" style="display:none;">⏹️ Stop Recording</button>
+        <!-- READING MODE -->
+        <div class="mode-content" id="reading-mode">
+            <div class="info-box">
+                💡 <strong>Cara Pakai:</strong> Paste teks bahasa Inggris, klik kata yang sulit untuk terjemahan, atau generate summary!
+            </div>
+            
+            <div class="input-group">
+                <textarea id="readingInput" placeholder="Paste your English text here..." rows="6">The Amazon rainforest is the largest tropical rainforest in the world. It covers much of northwestern Brazil and extends into Colombia, Peru and other South American countries. Scientists believe that millions of species still remain undiscovered in the Amazon.</textarea>
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn-primary" id="analyzeBtn">🔍 Analyze Text</button>
+                <button class="btn-success" id="summaryBtn" style="display:none;">📝 Generate Summary</button>
+            </div>
+            
+            <div class="text-display" id="textDisplay" style="display:none;"></div>
+            <div class="result" id="readingResult"></div>
+            <div class="error" id="readingError"></div>
         </div>
 
-        <div class="btn-group">
-            <button class="btn-primary" id="checkBtn">✅ Check Pronunciation</button>
-        </div>
-        
-        <div class="result" id="pronunciationResult"></div>
-        <div class="error" id="pronunciationError"></div>
+        <div class="tooltip" id="tooltip"></div>
     </div>
 
     <script>
+        // MODE SWITCHER
+        const modeBtns = document.querySelectorAll('.mode-btn');
+        const modeContents = document.querySelectorAll('.mode-content');
+        
+        modeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const mode = btn.dataset.mode;
+                modeBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                modeContents.forEach(content => content.classList.remove('active'));
+                document.getElementById(mode + '-mode').classList.add('active');
+            });
+        });
+
+        // ===== PRONUNCIATION MODE =====
         let mediaRecorder, audioChunks = [], recordedAudioBlob, isListening = false;
         let recordingStartTime, timerInterval;
         
@@ -410,30 +497,6 @@
             pronunciationError.textContent = '❌ ' + message;
             pronunciationError.classList.add('show');
         }
-         <div class="container">
-        <h1>📖 Reading Comprehension</h1>
-        
-        <div class="info-box">
-            💡 <strong>Cara Pakai:</strong> Paste teks bahasa Inggris, klik kata yang sulit untuk terjemahan, atau generate summary!
-        </div>
-        
-        <div class="input-group">
-            <textarea id="readingInput" placeholder="Paste your English text here..." rows="8">The Amazon rainforest is the largest tropical rainforest in the world. It covers much of northwestern Brazil and extends into Colombia, Peru and other South American countries. Scientists believe that millions of species still remain undiscovered in the Amazon.</textarea>
-        </div>
-        
-        <div class="btn-group">
-            <button class="btn-primary" id="analyzeBtn">🔍 Analyze Text</button>
-            <button class="btn-success" id="summaryBtn" style="display:none;">📝 Generate Summary</button>
-        </div>
-        
-        <div class="text-display" id="textDisplay" style="display:none;"></div>
-        <div class="result" id="readingResult"></div>
-        <div class="error" id="readingError"></div>
-
-        <div class="tooltip" id="tooltip"></div>
-    </div>
-
-    <script>
         const readingInput = document.getElementById('readingInput');
         const analyzeBtn = document.getElementById('analyzeBtn');
         const summaryBtn = document.getElementById('summaryBtn');
@@ -558,3 +621,8 @@
     </script>
 </body>
 </html>
+           
+      
+
+      
+
