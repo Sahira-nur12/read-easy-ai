@@ -101,33 +101,11 @@
         .word-analysis { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
         .word-box {
             padding: 10px 15px; border-radius: 8px;
-            font-weight: bold; font-size: 16px; transition: all 0.3s;
+            font-weight: bold; font-size: 16px; transition: all 0.3s; cursor: help;
         }
         .word-correct { background: #d4edda; color: #155724; border: 2px solid #28a745; }
         .word-incorrect { background: #f8d7da; color: #721c24; border: 2px solid #dc3545; }
         .word-missing { background: #fff3cd; color: #856404; border: 2px solid #ffc107; }
-        .text-display {
-            background: #fff; border: 2px solid #ddd; border-radius: 10px;
-            padding: 20px; margin: 20px 0; line-height: 1.8;
-            font-size: 16px; max-height: 400px; overflow-y: auto;
-        }
-        .word-highlight {
-            background: #fff9c4; padding: 2px 4px; border-radius: 3px;
-            cursor: pointer; transition: all 0.2s; position: relative;
-        }
-        .word-highlight:hover { background: #ffeb3b; transform: scale(1.05); }
-        .tooltip {
-            position: fixed; background: #333; color: white;
-            padding: 12px 16px; border-radius: 8px; font-size: 14px;
-            max-width: 300px; z-index: 1000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            display: none; white-space: pre-wrap; line-height: 1.5;
-        }
-        .tooltip.show { display: block; }
-        .info-box {
-            background: #e3f2fd; border-left: 4px solid #2196f3;
-            padding: 15px; margin: 15px 0; border-radius: 5px; font-size: 14px;
-        }
         .timer { text-align: center; font-size: 24px; font-weight: bold; color: #c62828; padding: 10px; }
     </style>
 </head>
@@ -136,18 +114,17 @@
         <h1>📚 AI Learning Assistant</h1>
         
         <div class="mode-selector">
-            <button class="mode-btn active" data-mode="pronunciation">🗣️ Pronunciation</button>
-            <button class="mode-btn" data-mode="reading">📖 Reading Comprehension</button>
+            <button class="mode-btn active" data-mode="pronunciation">🗣️ Pronunciation Practice</button>
         </div>
 
         <div class="mode-content active" id="pronunciation-mode">
             <div class="practice-guide">
-                <h3>📝 Practice Steps:</h3>
+                <h3>📝 Cara Menggunakan:</h3>
                 <ol>
-                    <li><strong>Listen to Model</strong> - Dengar pronunciation yang benar</li>
-                    <li><strong>Record Your Voice</strong> - Baca text dan rekam sampai selesai</li>
+                    <li><strong>Listen to Model</strong> - Dengarkan pronunciation yang benar</li>
+                    <li><strong>Start Recording</strong> - Rekam suara Anda membaca teks</li>
                     <li><strong>Stop Recording</strong> - Klik stop setelah selesai</li>
-                    <li><strong>Check Pronunciation</strong> - Dapatkan feedback AI</li>
+                    <li><strong>Check Pronunciation</strong> - Lihat hasil analisis AI</li>
                 </ol>
             </div>
 
@@ -177,43 +154,9 @@
             <div class="result" id="pronunciationResult"></div>
             <div class="error" id="pronunciationError"></div>
         </div>
-
-        <div class="mode-content" id="reading-mode">
-            <div class="info-box">
-                💡 <strong>Cara Pakai:</strong> Paste teks bahasa Inggris, klik kata yang sulit untuk terjemahan, atau generate summary!
-            </div>
-            
-            <div class="input-group">
-                <textarea id="readingInput" placeholder="Paste your English text here..." rows="6">The Amazon rainforest is the largest tropical rainforest in the world. It covers much of northwestern Brazil and extends into Colombia, Peru and other South American countries. Scientists believe that millions of species still remain undiscovered in the Amazon.</textarea>
-            </div>
-            
-            <div class="btn-group">
-                <button class="btn-primary" id="analyzeBtn">🔍 Analyze Text</button>
-                <button class="btn-success" id="summaryBtn" style="display:none;">📝 Generate Summary</button>
-            </div>
-            
-            <div class="text-display" id="textDisplay" style="display:none;"></div>
-            <div class="result" id="readingResult"></div>
-            <div class="error" id="readingError"></div>
-        </div>
-
-        <div class="tooltip" id="tooltip"></div>
     </div>
 
     <script>
-        const modeBtns = document.querySelectorAll('.mode-btn');
-        const modeContents = document.querySelectorAll('.mode-content');
-        
-        modeBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const mode = btn.dataset.mode;
-                modeBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                modeContents.forEach(content => content.classList.remove('active'));
-                document.getElementById(mode + '-mode').classList.add('active');
-            });
-        });
-
         let mediaRecorder, audioChunks = [], recordedAudioBlob, isListening = false;
         let recordingStartTime, timerInterval;
         
@@ -327,7 +270,31 @@
                 recordBtn.disabled = false;
                 listenBtn.disabled = false;
             }
-            function analyzePronunciation(expected, actual) {
+        }
+
+        async function transcribeAudio() {
+            return new Promise((resolve) => {
+                const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+                recognition.lang = 'en-US';
+                recognition.continuous = false;
+                recognition.interimResults = false;
+
+                const audioUrl = URL.createObjectURL(recordedAudioBlob);
+                const audio = new Audio(audioUrl);
+
+                recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    resolve(transcript);
+                };
+
+                recognition.onerror = () => { resolve(phraseInput.value.trim()); };
+                recognition.start();
+                audio.play();
+                setTimeout(() => { recognition.stop(); resolve(phraseInput.value.trim()); }, 10000);
+            });
+        }
+
+        function analyzePronunciation(expected, actual) {
             const expectedWords = expected.toLowerCase().replace(/[.,!?]/g, '').split(/\s+/);
             const actualWords = actual.toLowerCase().replace(/[.,!?]/g, '').split(/\s+/);
             
@@ -343,7 +310,6 @@
                     const maxLen = Math.max(word.length, actualWord.length);
                     const similarity = ((maxLen - distance) / maxLen) * 100;
                     
-                    // Lebih strict: hanya exact match atau sangat mirip (95%+) yang dianggap correct
                     if (actualWord === word) {
                         status = 'correct';
                         score = 100;
@@ -375,42 +341,14 @@
                 });
             });
 
-            // Calculate realistic accuracy based on individual word scores
             analysis.accuracy = Math.round(analysis.totalScore / expectedWords.length);
             
-            // Penalty for missing or extra words
             if (actualWords.length < expectedWords.length) {
                 const missingPenalty = ((expectedWords.length - actualWords.length) / expectedWords.length) * 20;
                 analysis.accuracy = Math.max(0, analysis.accuracy - Math.round(missingPenalty));
             }
             
             return analysis;
-        }
-        }
-
-        async function transcribeAudio() {
-            return new Promise((resolve) => {
-                const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-                recognition.lang = 'en-US';
-                recognition.continuous = false;
-                recognition.interimResults = false;
-
-                const audioUrl = URL.createObjectURL(recordedAudioBlob);
-                const audio = new Audio(audioUrl);
-
-                recognition.onresult = (event) => {
-                    const transcript = event.results[0][0].transcript;
-                    resolve(transcript);
-                };
-
-                recognition.onerror = () => { resolve(phraseInput.value.trim()); };
-                recognition.start();
-                audio.play();
-                setTimeout(() => { recognition.stop(); resolve(phraseInput.value.trim()); }, 10000);
-            });
-        }
-
-       
         }
 
         function levenshteinDistance(a, b) {
@@ -430,21 +368,46 @@
         }
 
         function displayFeedback(expected, actual, analysis) {
-            const scoreColor = analysis.accuracy >= 80 ? '#28a745' : analysis.accuracy >= 60 ? '#ffc107' : '#dc3545';
+            let scoreColor, message;
+            
+            if (analysis.accuracy >= 90) {
+                scoreColor = '#28a745';
+                message = '🎉 Excellent! Pronunciation sangat baik!';
+            } else if (analysis.accuracy >= 75) {
+                scoreColor = '#4caf50';
+                message = '👍 Good! Pronunciation cukup baik, ada sedikit yang perlu diperbaiki.';
+            } else if (analysis.accuracy >= 60) {
+                scoreColor = '#ff9800';
+                message = '⚠️ Fair. Masih ada beberapa kata yang perlu latihan lagi.';
+            } else if (analysis.accuracy >= 40) {
+                scoreColor = '#ff5722';
+                message = '⚠️ Needs improvement. Coba dengarkan model dan ulangi lagi.';
+            } else {
+                scoreColor = '#dc3545';
+                message = '❌ Poor. Sepertinya banyak kata yang tidak terdeteksi atau salah. Coba rekam ulang dengan lebih jelas.';
+            }
+            
             let html = '<div class="feedback-container">';
             html += `<div class="accuracy-score" style="background: ${scoreColor};"><h2>${analysis.accuracy}%</h2><p>Pronunciation Accuracy</p></div>`;
+            html += `<div style="padding: 15px; background: #fff3cd; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid ${scoreColor};"><strong>${message}</strong></div>`;
             html += '<h3 style="margin-bottom: 15px;">📊 Word-by-Word Analysis:</h3><div class="word-analysis">';
             
             analysis.words.forEach(word => {
-                let className = 'word-box ', statusIcon = '';
+                let className = 'word-box ', statusIcon = '', tooltip = '';
                 if (word.status === 'correct') {
-                    className += 'word-correct'; statusIcon = ' ✓';
+                    className += 'word-correct'; 
+                    statusIcon = ' ✓';
+                    tooltip = `Score: ${word.score}%`;
                 } else if (word.status === 'incorrect') {
-                    className += 'word-incorrect'; statusIcon = ' ✗';
+                    className += 'word-incorrect'; 
+                    statusIcon = ' ✗';
+                    tooltip = word.actual ? `You said: "${word.actual}" (${word.score}%)` : 'Not detected';
                 } else {
-                    className += 'word-missing'; statusIcon = ' ?';
+                    className += 'word-missing'; 
+                    statusIcon = ' ?';
+                    tooltip = 'Word not detected';
                 }
-                html += `<div class="${className}">${word.expected}${statusIcon}</div>`;
+                html += `<div class="${className}" title="${tooltip}">${word.expected}${statusIcon}</div>`;
             });
             
             html += '</div>';
@@ -452,7 +415,19 @@
             html += `<p><strong>Expected:</strong> ${expected}</p><p><strong>You said:</strong> ${actual}</p>`;
             html += `<p style="margin-top: 10px;"><span style="color: #28a745;">✓ Correct: ${analysis.correct}</span> | `;
             html += `<span style="color: #dc3545;">✗ Incorrect: ${analysis.incorrect}</span> | `;
-            html += `<span style="color: #ffc107;">? Missing: ${analysis.missing}</span></p></div></div>`;
+            html += `<span style="color: #ffc107;">? Missing: ${analysis.missing}</span></p>`;
+            
+            if (analysis.accuracy < 75) {
+                html += `<div style="margin-top: 15px; padding: 12px; background: #e3f2fd; border-radius: 6px; font-size: 14px;">`;
+                html += `<strong>💡 Tips:</strong><br>`;
+                html += `• Dengarkan model audio beberapa kali<br>`;
+                html += `• Speak clearly dan tidak terlalu cepat<br>`;
+                html += `• Pastikan microphone dekat dengan mulut<br>`;
+                html += `• Latih kata-kata yang incorrect secara terpisah`;
+                html += `</div>`;
+            }
+            
+            html += `</div></div>`;
             
             pronunciationResult.innerHTML = html;
         }
@@ -461,132 +436,6 @@
             pronunciationError.textContent = '❌ ' + message;
             pronunciationError.classList.add('show');
         }
-
-        // READING COMPREHENSION - UPDATED TO USE NETLIFY FUNCTION
-        const readingInput = document.getElementById('readingInput');
-        const analyzeBtn = document.getElementById('analyzeBtn');
-        const summaryBtn = document.getElementById('summaryBtn');
-        const textDisplay = document.getElementById('textDisplay');
-        const readingResult = document.getElementById('readingResult');
-        const readingError = document.getElementById('readingError');
-        const tooltip = document.getElementById('tooltip');
-
-        let currentText = '';
-        analyzeBtn.addEventListener('click', analyzeText);
-        summaryBtn.addEventListener('click', generateSummary);
-
-        function analyzeText() {
-            currentText = readingInput.value.trim();
-            if (!currentText) { showReadingError('Please enter text'); return; }
-
-            readingError.classList.remove('show');
-            readingResult.classList.remove('show');
-            
-            const words = currentText.match(/\b[a-zA-Z]+\b/g) || [];
-            const difficultWords = [...new Set(words.filter(word => word.length >= 8))];
-            
-            let highlightedText = currentText;
-            difficultWords.forEach(word => {
-                const regex = new RegExp(`\\b(${word})\\b`, 'gi');
-                highlightedText = highlightedText.replace(regex, '<span class="word-highlight" data-word="$1">$1</span>');
-            });
-            
-            textDisplay.innerHTML = highlightedText;
-            textDisplay.style.display = 'block';
-            summaryBtn.style.display = 'block';
-            
-            document.querySelectorAll('.word-highlight').forEach(span => {
-                span.addEventListener('click', handleWordClick);
-            });
-        }
-
-        async function handleWordClick(e) {
-            const word = e.target.dataset.word;
-            const rect = e.target.getBoundingClientRect();
-            
-            tooltip.innerHTML = '<div class="loading">Loading...</div>';
-            tooltip.style.display = 'block';
-            tooltip.style.left = rect.left + 'px';
-            tooltip.style.top = (rect.bottom + 10) + 'px';
-            tooltip.classList.add('show');
-            
-            try {
-                const definition = await getDefinition(word);
-                tooltip.innerHTML = `<strong>${word}</strong>\n\n${definition}`;
-            } catch (err) {
-                tooltip.innerHTML = '❌ Could not load definition: ' + err.message;
-            }
-        }
-
-        // UPDATED: Call Netlify Function instead of OpenAI directly
-        async function getDefinition(word) {
-            const response = await fetch('/.netlify/functions/openai-proxy', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    messages: [{
-                        role: 'user',
-                        content: `Berikan definisi singkat kata "${word}" dalam bahasa Indonesia:\n- Arti: [terjemahan]\n- Contoh: [kalimat bahasa Inggris]`
-                    }],
-                    max_tokens: 150
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to get definition');
-            }
-
-            const data = await response.json();
-            return data.choices[0]?.message?.content || 'Unable to get definition';
-        }
-
-        document.addEventListener('click', (e) => {
-            if (!e.target.classList.contains('word-highlight') && !tooltip.contains(e.target)) {
-                tooltip.classList.remove('show');
-            }
-        });
-
-        // UPDATED: Call Netlify Function for summary
-        async function generateSummary() {
-            if (!currentText) { showReadingError('No text to summarize'); return; }
-
-            readingError.classList.remove('show');
-            summaryBtn.disabled = true;
-            readingResult.innerHTML = '<div class="loading">📝 Generating summary...</div>';
-            readingResult.classList.add('show');
-
-            try {
-                const response = await fetch('/.netlify/functions/openai-proxy', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        messages: [{
-                            role: 'user',
-                            content: `Buatkan ringkasan dalam bahasa Indonesia:\n\n${currentText}`
-                        }],
-                        max_tokens: 500
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to generate summary');
-                }
-
-                const data = await response.json();
-                readingResult.innerHTML = data.choices[0]?.message?.content || 'Unable to generate summary';
-            } catch (err) {
-                readingResult.classList.remove('show');
-                showReadingError(err.message);
-            } finally {
-                summaryBtn.disabled = false;
-            }
-        }
-
-        function showReadingError(message) {
-            readingError.textContent = '❌ ' + message;
-            readingError.classList.add('show');
-        }
     </script>
 </body>
 </html>
-
