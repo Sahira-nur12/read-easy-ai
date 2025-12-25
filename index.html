@@ -19,7 +19,7 @@
             background: white;
             border-radius: 20px;
             padding: 40px;
-            max-width: 800px;
+            max-width: 900px;
             width: 100%;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
@@ -46,10 +46,11 @@
             min-height: 100px; font-family: inherit;
         }
         textarea:focus { outline: none; border-color: #667eea; }
-        .btn-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        .btn-group { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
         button {
             flex: 1; padding: 15px; border: none; border-radius: 10px;
             font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s;
+            min-width: 150px;
         }
         .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
@@ -61,6 +62,10 @@
         .btn-listen:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4); }
         .btn-danger { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; }
         .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4); }
+        .btn-warning { background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); color: white; }
+        .btn-warning:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(243, 156, 18, 0.4); }
+        .btn-info { background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); color: white; }
+        .btn-info:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(155, 89, 182, 0.4); }
         button:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
         .result {
             background: #f8f9fa; border-radius: 10px; padding: 20px;
@@ -139,6 +144,41 @@
             color: #1b5e20;
             font-weight: 500;
         }
+        .vocab-list {
+            background: #fff; border: 2px solid #9b59b6; border-radius: 10px;
+            padding: 20px; margin: 20px 0; display: none;
+        }
+        .vocab-list.show { display: block; }
+        .vocab-list h3 { color: #8e44ad; margin-bottom: 15px; }
+        .vocab-item {
+            background: #f8f9fa; border-left: 4px solid #9b59b6;
+            padding: 12px; margin-bottom: 10px; border-radius: 5px;
+        }
+        .vocab-item strong { color: #8e44ad; font-size: 18px; }
+        .vocab-item p { margin: 5px 0 0 0; color: #555; line-height: 1.5; }
+        .vocab-empty { text-align: center; color: #999; padding: 20px; font-style: italic; }
+        .question-box {
+            background: #fff; border: 2px solid #3498db; border-radius: 10px;
+            padding: 20px; margin: 20px 0; display: none;
+        }
+        .question-box.show { display: block; }
+        .question-item {
+            background: #f8f9fa; padding: 15px; margin-bottom: 15px; border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+        .question-item h4 { color: #2980b9; margin-bottom: 10px; }
+        .question-input {
+            width: 100%; padding: 10px; border: 2px solid #ddd;
+            border-radius: 5px; font-size: 14px; margin-top: 8px;
+        }
+        .question-input:focus { outline: none; border-color: #3498db; }
+        .answer-feedback {
+            margin-top: 10px; padding: 10px; border-radius: 5px; font-weight: bold;
+            display: none;
+        }
+        .answer-feedback.show { display: block; }
+        .answer-correct { background: #d4edda; color: #155724; }
+        .answer-incorrect { background: #f8d7da; color: #721c24; }
     </style>
 </head>
 <body>
@@ -195,7 +235,7 @@
 
         <div class="mode-content" id="reading-mode">
             <div class="info-box">
-                💡 <strong>Cara Pakai:</strong> Paste teks bahasa Inggris, klik kata yang sulit untuk terjemahan, atau generate summary!
+                💡 <strong>Cara Pakai:</strong> Paste teks bahasa Inggris, klik kata yang sulit untuk terjemahan, atau gunakan fitur AI!
             </div>
             
             <div class="input-group">
@@ -204,10 +244,28 @@
             
             <div class="btn-group">
                 <button class="btn-primary" id="analyzeBtn">🔍 Analyze Text</button>
-                <button class="btn-success" id="summaryBtn" style="display:none;">📝 Generate Summary</button>
+                <button class="btn-success" id="summaryBtn" style="display:none;">📝 Summary</button>
+                <button class="btn-warning" id="translateBtn" style="display:none;">🌐 Translate</button>
+                <button class="btn-info" id="questionsBtn" style="display:none;">❓ Questions</button>
+                <button class="btn-secondary" id="vocabBtn" style="display:none;">📚 My Vocabulary</button>
             </div>
             
             <div class="text-display" id="textDisplay" style="display:none;"></div>
+            
+            <div class="vocab-list" id="vocabList">
+                <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3>📚 My Vocabulary List</h3>
+                    <button class="btn-danger" id="clearVocabBtn" style="padding: 8px 15px; font-size: 14px;">🗑️ Clear All</button>
+                </div>
+                <div id="vocabContainer"></div>
+            </div>
+            
+            <div class="question-box" id="questionBox">
+                <h3 style="color: #2980b9; margin-bottom: 15px;">❓ Comprehension Questions</h3>
+                <div id="questionsContainer"></div>
+                <button class="btn-primary" id="checkAnswersBtn" style="margin-top: 15px; display: none;">✅ Check Answers</button>
+            </div>
+            
             <div class="result" id="readingResult"></div>
             <div class="error" id="readingError"></div>
         </div>
@@ -226,6 +284,8 @@
                 btn.classList.add('active');
                 modeContents.forEach(content => content.classList.remove('active'));
                 document.getElementById(mode + '-mode').classList.add('active');
+                
+                tooltip.classList.remove('show');
             });
         });
 
@@ -312,10 +372,6 @@
                 recognition.continuous = true;
                 recognition.interimResults = true;
                 
-                recognition.onstart = () => {
-                    console.log('Speech recognition started');
-                };
-                
                 recognition.onresult = (event) => {
                     interimTranscript = '';
                     
@@ -324,7 +380,6 @@
                         
                         if (event.results[i].isFinal) {
                             finalTranscript += transcript + ' ';
-                            console.log('Final transcript:', finalTranscript);
                         } else {
                             interimTranscript += transcript;
                         }
@@ -332,7 +387,6 @@
                     
                     const displayText = (finalTranscript + interimTranscript).trim();
                     transcriptText.textContent = displayText || 'Listening...';
-                    console.log('Display:', displayText);
                 };
                 
                 recognition.onerror = (event) => {
@@ -340,10 +394,6 @@
                     if (event.error === 'no-speech') {
                         transcriptText.textContent = 'No speech detected. Please speak louder.';
                     }
-                };
-                
-                recognition.onend = () => {
-                    console.log('Speech recognition ended');
                 };
                 
                 mediaRecorder.start();
@@ -393,9 +443,6 @@
             
             const transcribedText = finalTranscript.trim();
             
-            console.log('Expected:', phrase);
-            console.log('You said:', transcribedText);
-            
             if (!transcribedText) { 
                 showPronunciationError('No speech detected! Please record your voice and speak clearly.'); 
                 return; 
@@ -432,9 +479,6 @@
             
             const expectedNorm = normalizeText(expected);
             const actualNorm = normalizeText(actual);
-            
-            console.log('Expected normalized:', expectedNorm);
-            console.log('Actual normalized:', actualNorm);
             
             const expectedWords = expectedNorm.split(/\s+/).filter(w => w.length > 0);
             const actualWords = actualNorm.split(/\s+/).filter(w => w.length > 0);
@@ -495,8 +539,6 @@
                     }
                 }
                 
-                console.log(`Word: ${expectedWord} -> Status: ${status}, Matched: ${matchedWord}`);
-                
                 analysis.words.push({ 
                     expected: expectedWord, 
                     actual: matchedWord || '', 
@@ -506,8 +548,6 @@
 
             const totalWords = expectedWords.length;
             analysis.accuracy = totalWords > 0 ? Math.round((analysis.correct / totalWords) * 100) : 0;
-            
-            console.log('Analysis result:', analysis);
             
             return analysis;
         }
@@ -552,145 +592,4 @@
                     statusIcon = ' ?';
                     tooltip = ' title="Not detected"';
                 }
-                html += `<div class="${className}"${tooltip}>${word.expected}${statusIcon}</div>`;
-            });
-            
-            html += '</div>';
-            html += `<div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">`;
-            html += `<p><strong>Expected:</strong> ${expected}</p><p><strong>You said:</strong> ${actual}</p>`;
-            html += `<p style="margin-top: 10px;"><span style="color: #28a745;">✓ Correct: ${analysis.correct}</span> | `;
-            html += `<span style="color: #dc3545;">✗ Incorrect: ${analysis.incorrect}</span> | `;
-            html += `<span style="color: #ffc107;">? Missing: ${analysis.missing}</span></p></div></div>`;
-            
-            pronunciationResult.innerHTML = html;
-        }
-
-        function showPronunciationError(message) {
-            pronunciationError.textContent = '❌ ' + message;
-            pronunciationError.classList.add('show');
-        }
-
-        const readingInput = document.getElementById('readingInput');
-        const analyzeBtn = document.getElementById('analyzeBtn');
-        const summaryBtn = document.getElementById('summaryBtn');
-        const textDisplay = document.getElementById('textDisplay');
-        const readingResult = document.getElementById('readingResult');
-        const readingError = document.getElementById('readingError');
-        const tooltip = document.getElementById('tooltip');
-
-        let currentText = '';
-        analyzeBtn.addEventListener('click', analyzeText);
-        summaryBtn.addEventListener('click', generateSummary);
-
-        function analyzeText() {
-            currentText = readingInput.value.trim();
-            if (!currentText) { showReadingError('Please enter text'); return; }
-
-            readingError.classList.remove('show');
-            readingResult.classList.remove('show');
-            
-            const words = currentText.match(/\b[a-zA-Z]+\b/g) || [];
-            const difficultWords = [...new Set(words.filter(word => word.length >= 8))];
-            
-            let highlightedText = currentText;
-            difficultWords.forEach(word => {
-                const regex = new RegExp(`\\b(${word})\\b`, 'gi');
-                highlightedText = highlightedText.replace(regex, '<span class="word-highlight" data-word="$1">$1</span>');
-            });
-            
-            textDisplay.innerHTML = highlightedText;
-            textDisplay.style.display = 'block';
-            summaryBtn.style.display = 'block';
-            
-            document.querySelectorAll('.word-highlight').forEach(span => {
-                span.addEventListener('click', handleWordClick);
-            });
-        }
-
-        async function handleWordClick(e) {
-            const word = e.target.dataset.word;
-            const rect = e.target.getBoundingClientRect();
-            
-            tooltip.innerHTML = '<div class="loading">Loading...</div>';
-            tooltip.style.display = 'block';
-            tooltip.style.left = rect.left + 'px';
-            tooltip.style.top = (rect.bottom + 10) + 'px';
-            tooltip.classList.add('show');
-            
-            try {
-                const definition = await getDefinition(word);
-                tooltip.innerHTML = `<strong>${word}</strong>\n\n${definition}`;
-            } catch (err) {
-                tooltip.innerHTML = '❌ Could not load definition: ' + err.message;
-            }
-        }
-
-        async function getDefinition(word) {
-            const response = await fetch('/.netlify/functions/openai-proxy', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    messages: [{
-                        role: 'user',
-                        content: `Berikan definisi singkat kata "${word}" dalam bahasa Indonesia:\n- Arti: [terjemahan]\n- Contoh: [kalimat bahasa Inggris]`
-                    }],
-                    max_tokens: 150
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to get definition');
-            }
-
-            const data = await response.json();
-            return data.choices[0]?.message?.content || 'Unable to get definition';
-        }
-
-        document.addEventListener('click', (e) => {
-            if (!e.target.classList.contains('word-highlight') && !tooltip.contains(e.target)) {
-                tooltip.classList.remove('show');
-            }
-        });
-
-        async function generateSummary() {
-            if (!currentText) { showReadingError('No text to summarize'); return; }
-
-            readingError.classList.remove('show');
-            summaryBtn.disabled = true;
-            readingResult.innerHTML = '<div class="loading">📝 Generating summary...</div>';
-            readingResult.classList.add('show');
-
-            try {
-                const response = await fetch('/.netlify/functions/openai-proxy', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        messages: [{
-                            role: 'user',
-                            content: `Buatkan ringkasan dalam bahasa Indonesia:\n\n${currentText}`
-                        }],
-                        max_tokens: 500
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to generate summary');
-                }
-
-                const data = await response.json();
-                readingResult.innerHTML = data.choices[0]?.message?.content || 'Unable to generate summary';
-            } catch (err) {
-                readingResult.classList.remove('show');
-                showReadingError(err.message);
-            } finally {
-                summaryBtn.disabled = false;
-            }
-        }
-
-        function showReadingError(message) {
-            readingError.textContent = '❌ ' + message;
-            readingError.classList.add('show');
-        }
-    </script>
-</body>
-</html>
+                html += `<div class="${className}"${tooltip}>${word.expected}${status
