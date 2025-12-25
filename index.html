@@ -592,4 +592,350 @@
                     statusIcon = ' ?';
                     tooltip = ' title="Not detected"';
                 }
-                html += `<div class="${className}"${tooltip}>${word.expected}${status
+                html += `<div class="${className}"${tooltip}>${word.expected}${statusIcon}</div>`;
+            });
+            
+            html += '</div>';
+            html += `<div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">`;
+            html += `<p><strong>Expected:</strong> ${expected}</p><p><strong>You said:</strong> ${actual}</p>`;
+            html += `<p style="margin-top: 10px;"><span style="color: #28a745;">✓ Correct: ${analysis.correct}</span> | `;
+            html += `<span style="color: #dc3545;">✗ Incorrect: ${analysis.incorrect}</span> | `;
+            html += `<span style="color: #ffc107;">? Missing: ${analysis.missing}</span></p></div></div>`;
+            
+            pronunciationResult.innerHTML = html;
+        }
+
+        function showPronunciationError(message) {
+            pronunciationError.textContent = '❌ ' + message;
+            pronunciationError.classList.add('show');
+        }
+
+        // READING COMPREHENSION
+        const readingInput = document.getElementById('readingInput');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const summaryBtn = document.getElementById('summaryBtn');
+        const translateBtn = document.getElementById('translateBtn');
+        const questionsBtn = document.getElementById('questionsBtn');
+        const vocabBtn = document.getElementById('vocabBtn');
+        const textDisplay = document.getElementById('textDisplay');
+        const readingResult = document.getElementById('readingResult');
+        const readingError = document.getElementById('readingError');
+        const tooltip = document.getElementById('tooltip');
+        const vocabList = document.getElementById('vocabList');
+        const vocabContainer = document.getElementById('vocabContainer');
+        const clearVocabBtn = document.getElementById('clearVocabBtn');
+        const questionBox = document.getElementById('questionBox');
+        const questionsContainer = document.getElementById('questionsContainer');
+        const checkAnswersBtn = document.getElementById('checkAnswersBtn');
+
+        let currentText = '';
+        let vocabularyBank = [];
+        let currentQuestions = [];
+
+        analyzeBtn.addEventListener('click', analyzeText);
+        summaryBtn.addEventListener('click', generateSummary);
+        translateBtn.addEventListener('click', translateText);
+        questionsBtn.addEventListener('click', generateQuestions);
+        vocabBtn.addEventListener('click', toggleVocabList);
+        clearVocabBtn.addEventListener('click', clearVocabulary);
+        checkAnswersBtn.addEventListener('click', checkAnswers);
+
+        function analyzeText() {
+            currentText = readingInput.value.trim();
+            if (!currentText) { showReadingError('Please enter text'); return; }
+
+            tooltip.classList.remove('show');
+            readingError.classList.remove('show');
+            readingResult.classList.remove('show');
+            questionBox.classList.remove('show');
+            vocabList.classList.remove('show');
+            
+            const words = currentText.match(/\b[a-zA-Z]+\b/g) || [];
+            const difficultWords = [...new Set(words.filter(word => word.length >= 8))];
+            
+            let highlightedText = currentText;
+            difficultWords.forEach(word => {
+                const regex = new RegExp(`\\b(${word})\\b`, 'gi');
+                highlightedText = highlightedText.replace(regex, '<span class="word-highlight" data-word="$1">$1</span>');
+            });
+            
+            textDisplay.innerHTML = highlightedText;
+            textDisplay.style.display = 'block';
+            summaryBtn.style.display = 'block';
+            translateBtn.style.display = 'block';
+            questionsBtn.style.display = 'block';
+            vocabBtn.style.display = 'block';
+            
+            document.querySelectorAll('.word-highlight').forEach(span => {
+                span.addEventListener('click', handleWordClick);
+            });
+        }
+
+        async function handleWordClick(e) {
+            const word = e.target.dataset.word;
+            const rect = e.target.getBoundingClientRect();
+            
+            tooltip.innerHTML = '<div class="loading">Loading...</div>';
+            tooltip.style.display = 'block';
+            tooltip.style.left = rect.left + 'px';
+            tooltip.style.top = (rect.bottom + 10) + 'px';
+            tooltip.classList.add('show');
+            
+            try {
+                const definition = await getDefinition(word);
+                tooltip.innerHTML = `<strong>${word}</strong>\n\n${definition}\n\n<button onclick="saveToVocab('${word}', \`${definition.replace(/`/g, '\\`')}\`)" style="margin-top: 10px; padding: 5px 10px; background: #9b59b6; color: white; border: none; border-radius: 5px; cursor: pointer;">💾 Save to Vocabulary</button>`;
+            } catch (err) {
+                tooltip.innerHTML = '❌ Could not load definition: ' + err.message;
+            }
+        }
+
+        window.saveToVocab = function(word, definition) {
+            const exists = vocabularyBank.find(v => v.word.toLowerCase() === word.toLowerCase());
+            if (!exists) {
+                vocabularyBank.push({ word, definition });
+                tooltip.classList.remove('show');
+                alert(`✅ "${word}" saved to vocabulary!`);
+            } else {
+                alert(`"${word}" already in vocabulary!`);
+            }
+        };
+
+        function toggleVocabList() {
+            vocabList.classList.toggle('show');
+            questionBox.classList.remove('show');
+            readingResult.classList.remove('show');
+            
+            if (vocabularyBank.length === 0) {
+                vocabContainer.innerHTML = '<div class="vocab-empty">No vocabulary saved yet. Click on highlighted words to add them!</div>';
+            } else {
+                let html = '';
+                vocabularyBank.forEach((vocab, idx) => {
+                    html += `<div class="vocab-item">
+                        <strong>${idx + 1}. ${vocab.word}</strong>
+                        <p>${vocab.definition}</p>
+                    </div>`;
+                });
+                vocabContainer.innerHTML = html;
+            }
+        }
+
+        function clearVocabulary() {
+            if (confirm('Are you sure you want to clear all vocabulary?')) {
+                vocabularyBank = [];
+                vocabContainer.innerHTML = '<div class="vocab-empty">No vocabulary saved yet. Click on highlighted words to add them!</div>';
+            }
+        }
+
+        async function getDefinition(word) {
+            const response = await fetch('/.netlify/functions/openai-proxy', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    messages: [{
+                        role: 'user',
+                        content: `Berikan definisi singkat kata "${word}" dalam bahasa Indonesia:\n- Arti: [terjemahan]\n- Contoh: [kalimat bahasa Inggris]`
+                    }],
+                    max_tokens: 150
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to get definition');
+            }
+
+            const data = await response.json();
+            return data.choices[0]?.message?.content || 'Unable to get definition';
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('word-highlight') && !tooltip.contains(e.target)) {
+                tooltip.classList.remove('show');
+            }
+        });
+
+        window.addEventListener('scroll', () => {
+            tooltip.classList.remove('show');
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                tooltip.classList.remove('show');
+            }
+        });
+
+        async function generateSummary() {
+            if (!currentText) { showReadingError('No text to summarize'); return; }
+
+            tooltip.classList.remove('show');
+            vocabList.classList.remove('show');
+            questionBox.classList.remove('show');
+            readingError.classList.remove('show');
+            summaryBtn.disabled = true;
+            readingResult.innerHTML = '<div class="loading">📝 Generating summary...</div>';
+            readingResult.classList.add('show');
+
+            try {
+                const response = await fetch('/.netlify/functions/openai-proxy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        messages: [{
+                            role: 'user',
+                            content: `Buatkan ringkasan SINGKAT (maksimal 3-5 kalimat) dari teks ini dalam bahasa Indonesia. Fokus pada poin-poin penting saja:\n\n${currentText}`
+                        }],
+                        max_tokens: 300
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to generate summary');
+                }
+
+                const data = await response.json();
+                readingResult.innerHTML = '<h3 style="color: #667eea; margin-bottom: 10px;">📝 Summary (Ringkasan):</h3>' + (data.choices[0]?.message?.content || 'Unable to generate summary');
+            } catch (err) {
+                readingResult.classList.remove('show');
+                showReadingError(err.message);
+            } finally {
+                summaryBtn.disabled = false;
+            }
+        }
+
+        async function translateText() {
+            if (!currentText) { showReadingError('No text to translate'); return; }
+
+            tooltip.classList.remove('show');
+            vocabList.classList.remove('show');
+            questionBox.classList.remove('show');
+            readingError.classList.remove('show');
+            translateBtn.disabled = true;
+            readingResult.innerHTML = '<div class="loading">🌐 Translating...</div>';
+            readingResult.classList.add('show');
+
+            try {
+                const response = await fetch('/.netlify/functions/openai-proxy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        messages: [{
+                            role: 'user',
+                            content: `Terjemahkan teks berikut ke bahasa Indonesia secara lengkap dan akurat:\n\n${currentText}`
+                        }],
+                        max_tokens: 1000
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to translate');
+                }
+
+                const data = await response.json();
+                readingResult.innerHTML = '<h3 style="color: #f39c12; margin-bottom: 10px;">🌐 Translation (Terjemahan Lengkap):</h3>' + (data.choices[0]?.message?.content || 'Unable to translate');
+            } catch (err) {
+                readingResult.classList.remove('show');
+                showReadingError(err.message);
+            } finally {
+                translateBtn.disabled = false;
+            }
+        }
+
+        async function generateQuestions() {
+            if (!currentText) { showReadingError('No text to generate questions'); return; }
+
+            tooltip.classList.remove('show');
+            vocabList.classList.remove('show');
+            readingResult.classList.remove('show');
+            readingError.classList.remove('show');
+            questionsBtn.disabled = true;
+            questionBox.innerHTML = '<div class="loading">❓ Generating questions...</div>';
+            questionBox.classList.add('show');
+
+            try {
+                const response = await fetch('/.netlify/functions/openai-proxy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        messages: [{
+                            role: 'user',
+                            content: `Berdasarkan teks berikut, buatkan 4 pertanyaan comprehension dalam bahasa Inggris beserta jawabannya. Format JSON seperti ini:
+[
+  {"question": "pertanyaan 1", "answer": "jawaban 1"},
+  {"question": "pertanyaan 2", "answer": "jawaban 2"}
+]
+
+Teks:
+${currentText}
+
+HANYA berikan JSON array, tanpa text tambahan.`
+                        }],
+                        max_tokens: 500
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to generate questions');
+                }
+
+                const data = await response.json();
+                const content = data.choices[0]?.message?.content || '[]';
+                
+                const jsonMatch = content.match(/\[[\s\S]*\]/);
+                const jsonStr = jsonMatch ? jsonMatch[0] : content;
+                
+                currentQuestions = JSON.parse(jsonStr);
+                
+                displayQuestions();
+            } catch (err) {
+                questionBox.classList.remove('show');
+                showReadingError('Failed to generate questions: ' + err.message);
+            } finally {
+                questionsBtn.disabled = false;
+            }
+        }
+
+        function displayQuestions() {
+            let html = '<h3 style="color: #2980b9; margin-bottom: 15px;">❓ Comprehension Questions</h3>';
+            
+            currentQuestions.forEach((q, idx) => {
+                html += `<div class="question-item">
+                    <h4>Question ${idx + 1}:</h4>
+                    <p>${q.question}</p>
+                    <input type="text" class="question-input" id="answer-${idx}" placeholder="Type your answer here...">
+                    <div class="answer-feedback" id="feedback-${idx}"></div>
+                </div>`;
+            });
+            
+            questionsContainer.innerHTML = html;
+            checkAnswersBtn.style.display = 'block';
+        }
+
+        function checkAnswers() {
+            let allCorrect = 0;
+            
+            currentQuestions.forEach((q, idx) => {
+                const userAnswer = document.getElementById(`answer-${idx}`).value.trim().toLowerCase();
+                const correctAnswer = q.answer.toLowerCase();
+                const feedback = document.getElementById(`feedback-${idx}`);
+                
+                const similarity = userAnswer && correctAnswer.includes(userAnswer.substring(0, Math.min(userAnswer.length, 20)));
+                
+                if (similarity || userAnswer === correctAnswer) {
+                    feedback.className = 'answer-feedback answer-correct show';
+                    feedback.textContent = `✅ Correct! Expected answer: ${q.answer}`;
+                    allCorrect++;
+                } else {
+                    feedback.className = 'answer-feedback answer-incorrect show';
+                    feedback.textContent = `❌ Incorrect. Correct answer: ${q.answer}`;
+                }
+            });
+            
+            alert(`You got ${allCorrect} out of ${currentQuestions.length} correct! ${allCorrect === currentQuestions.length ? '🎉 Perfect!' : 'Keep learning!'}`);
+        }
+
+        function showReadingError(message) {
+            readingError.textContent = '❌ ' + message;
+            readingError.classList.add('show');
+        }
+    </script>
+</body>
+</html>
