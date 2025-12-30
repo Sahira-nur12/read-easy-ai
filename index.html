@@ -839,7 +839,7 @@
             }
         }
 
-        async function generateQuestions() {
+       async function generateQuestions() {
             if (!currentText) { showReadingError('No text to generate questions'); return; }
 
             tooltip.classList.remove('show');
@@ -910,9 +910,10 @@ Berikan HANYA JSON array, mulai dengan [ dan akhiri dengan ]`
             } finally {
                 questionsBtn.disabled = false;
             }
-             }
+        }
     </script>
 </body>
 </html>
+
 
 
