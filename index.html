@@ -851,91 +851,66 @@
             questionBox.classList.add('show');
 
             try {
-                const response = await fetch('/.netlify/functions/openai-proxy', {
+                const response = await fetch('/api/openai-proxy', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         messages: [{
                             role: 'user',
-                            content: `Berdasarkan teks berikut, buatkan 4 pertanyaan comprehension dalam bahasa Inggris beserta jawabannya. Format JSON seperti ini:
+                            content: `Berdasarkan teks berikut, buatkan 4 pertanyaan comprehension dalam bahasa Inggris beserta jawabannya. 
+
+PENTING: Response HARUS dalam format JSON array yang valid seperti ini (tanpa markdown, tanpa backticks, tanpa text tambahan):
 [
-  {"question": "pertanyaan 1", "answer": "jawaban 1"},
-  {"question": "pertanyaan 2", "answer": "jawaban 2"}
+  {"question": "What is the main topic?", "answer": "The answer here"},
+  {"question": "Where does it take place?", "answer": "The location"}
 ]
 
 Teks:
 ${currentText}
 
-HANYA berikan JSON array, tanpa text tambahan.`
+Berikan HANYA JSON array, mulai dengan [ dan akhiri dengan ]`
                         }],
-                        max_tokens: 500
+                        max_tokens: 600
                     })
                 });
 
                 if (!response.ok) {
-                    throw new Error('Failed to generate questions');
+                    const errorText = await response.text();
+                    throw new Error(`API Error: ${response.status} - ${errorText}`);
                 }
 
                 const data = await response.json();
-                const content = data.choices[0]?.message?.content || '[]';
+                let content = data.choices[0]?.message?.content || '';
                 
-                const jsonMatch = content.match(/\[[\s\S]*\]/);
-                const jsonStr = jsonMatch ? jsonMatch[0] : content;
+                console.log('Raw AI Response:', content);
                 
+                // Bersihkan markdown code blocks jika ada
+                content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+                content = content.trim();
+                
+                // Cari JSON array
+                const jsonMatch = content.match(/\[\s*{[\s\S]*}\s*\]/);
+                if (!jsonMatch) {
+                    throw new Error('No valid JSON found in response');
+                }
+                
+                const jsonStr = jsonMatch[0];
                 currentQuestions = JSON.parse(jsonStr);
                 
+                if (!Array.isArray(currentQuestions) || currentQuestions.length === 0) {
+                    throw new Error('Invalid questions format');
+                }
+                
+                console.log('Parsed Questions:', currentQuestions);
                 displayQuestions();
             } catch (err) {
                 questionBox.classList.remove('show');
+                console.error('Generate Questions Error:', err);
                 showReadingError('Failed to generate questions: ' + err.message);
             } finally {
                 questionsBtn.disabled = false;
             }
-        }
-
-        function displayQuestions() {
-            let html = '<h3 style="color: #2980b9; margin-bottom: 15px;">❓ Comprehension Questions</h3>';
-            
-            currentQuestions.forEach((q, idx) => {
-                html += `<div class="question-item">
-                    <h4>Question ${idx + 1}:</h4>
-                    <p>${q.question}</p>
-                    <input type="text" class="question-input" id="answer-${idx}" placeholder="Type your answer here...">
-                    <div class="answer-feedback" id="feedback-${idx}"></div>
-                </div>`;
-            });
-            
-            questionsContainer.innerHTML = html;
-            checkAnswersBtn.style.display = 'block';
-        }
-
-        function checkAnswers() {
-            let allCorrect = 0;
-            
-            currentQuestions.forEach((q, idx) => {
-                const userAnswer = document.getElementById(`answer-${idx}`).value.trim().toLowerCase();
-                const correctAnswer = q.answer.toLowerCase();
-                const feedback = document.getElementById(`feedback-${idx}`);
-                
-                const similarity = userAnswer && correctAnswer.includes(userAnswer.substring(0, Math.min(userAnswer.length, 20)));
-                
-                if (similarity || userAnswer === correctAnswer) {
-                    feedback.className = 'answer-feedback answer-correct show';
-                    feedback.textContent = `✅ Correct! Expected answer: ${q.answer}`;
-                    allCorrect++;
-                } else {
-                    feedback.className = 'answer-feedback answer-incorrect show';
-                    feedback.textContent = `❌ Incorrect. Correct answer: ${q.answer}`;
-                }
-            });
-            
-            alert(`You got ${allCorrect} out of ${currentQuestions.length} correct! ${allCorrect === currentQuestions.length ? '🎉 Perfect!' : 'Keep learning!'}`);
-        }
-
-        function showReadingError(message) {
-            readingError.textContent = '❌ ' + message;
-            readingError.classList.add('show');
-        }
     </script>
 </body>
 </html>
+
