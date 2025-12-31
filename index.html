@@ -683,7 +683,8 @@
             
             try {
                 const definition = await getDefinition(word);
-                tooltip.innerHTML = `<strong>${word}</strong>\n\n${definition}\n\n<button onclick="saveToVocab('${word}', \`${definition.replace(/`/g, '\\`')}\`)" style="margin-top: 10px; padding: 5px 10px; background: #9b59b6; color: white; border: none; border-radius: 5px; cursor: pointer;">💾 Save to Vocabulary</button>`;
+                const cleanDef = definition.replace(/'/g, "\\'").replace(/`/g, "\\`").replace(/\n/g, ' ');
+                tooltip.innerHTML = `<strong>${word}</strong>\n\n${definition}\n\n<button onclick="saveToVocab('${word}', '${cleanDef}')" style="margin-top: 10px; padding: 8px 15px; background: #9b59b6; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">💾 Save to Vocabulary</button>`;
             } catch (err) {
                 tooltip.innerHTML = '❌ Could not load definition: ' + err.message;
             }
@@ -692,14 +693,16 @@
         window.saveToVocab = function(word, definition) {
             const exists = vocabularyBank.find(v => v.word.toLowerCase() === word.toLowerCase());
             
-            // Hide tooltip immediately
-            tooltip.classList.remove('show');
+            // FORCE hide tooltip
+            const tooltipEl = document.getElementById('tooltip');
+            tooltipEl.classList.remove('show');
+            tooltipEl.style.display = 'none';
             
             if (!exists) {
                 vocabularyBank.push({ word, definition });
-                alert(`✅ "${word}" saved to vocabulary!`);
+                alert(`✅ "${word}" berhasil disimpan ke vocabulary!`);
             } else {
-                alert(`"${word}" already in vocabulary!`);
+                alert(`⚠️ "${word}" sudah ada di vocabulary!`);
             }
         };
 
@@ -931,7 +934,10 @@ ${currentText}`
         }
 
         function displayQuestions() {
+            questionBox.innerHTML = ''; // Clear loading
+            
             let html = '<h3 style="color: #2980b9; margin-bottom: 15px;">❓ Comprehension Questions</h3>';
+            html += '<div id="questionsContainer">';
             
             currentQuestions.forEach((q, idx) => {
                 html += `<div class="question-item">
@@ -942,8 +948,14 @@ ${currentText}`
                 </div>`;
             });
             
-            questionsContainer.innerHTML = html;
-            checkAnswersBtn.style.display = 'block';
+            html += '</div>';
+            html += '<button class="btn-primary" id="checkAnswersBtn" style="margin-top: 15px; width: 100%;">✅ Check Answers</button>';
+            
+            questionBox.innerHTML = html;
+            questionBox.classList.add('show');
+            
+            // Re-attach event listener
+            document.getElementById('checkAnswersBtn').addEventListener('click', checkAnswers);
         }
 
         function checkAnswers() {
