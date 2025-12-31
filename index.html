@@ -691,9 +691,12 @@
 
         window.saveToVocab = function(word, definition) {
             const exists = vocabularyBank.find(v => v.word.toLowerCase() === word.toLowerCase());
+            
+            // Hide tooltip immediately
+            tooltip.classList.remove('show');
+            
             if (!exists) {
                 vocabularyBank.push({ word, definition });
-                tooltip.classList.remove('show');
                 alert(`✅ "${word}" saved to vocabulary!`);
             } else {
                 alert(`"${word}" already in vocabulary!`);
@@ -856,19 +859,17 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         messages: [{
+                            role: 'system',
+                            content: 'You are a helpful English teacher. You MUST respond ONLY with valid JSON array, no other text.'
+                        }, {
                             role: 'user',
-                            content: `Berdasarkan teks berikut, buatkan 4 pertanyaan comprehension dalam bahasa Inggris beserta jawabannya. Format JSON seperti ini:
-[
-  {"question": "pertanyaan 1", "answer": "jawaban 1"},
-  {"question": "pertanyaan 2", "answer": "jawaban 2"}
-]
+                            content: `Create 4 comprehension questions in English based on this text. Return ONLY a JSON array with this exact format, no additional text:
+[{"question":"question 1 text","answer":"answer 1 text"},{"question":"question 2 text","answer":"answer 2 text"}]
 
-Teks:
-${currentText}
-
-HANYA berikan JSON array, tanpa text tambahan.`
+Text:
+${currentText}`
                         }],
-                        max_tokens: 500
+                        max_tokens: 600
                     })
                 });
 
@@ -877,17 +878,53 @@ HANYA berikan JSON array, tanpa text tambahan.`
                 }
 
                 const data = await response.json();
-                const content = data.choices[0]?.message?.content || '[]';
+                let content = data.choices[0]?.message?.content || '[]';
                 
-                const jsonMatch = content.match(/\[[\s\S]*\]/);
+                console.log('AI Response:', content);
+                
+                // Clean the response - remove markdown code blocks, extra text
+                content = content.replace(/```json\s*/g, '').replace(/```\s*/g, '');
+                content = content.trim();
+                
+                // Try to extract JSON array
+                let jsonMatch = content.match(/\[\s*\{[\s\S]*\}\s*\]/);
+                if (!jsonMatch) {
+                    // Try alternative patterns
+                    jsonMatch = content.match(/\{[\s\S]*\}/);
+                    if (jsonMatch) {
+                        content = '[' + jsonMatch[0] + ']';
+                    }
+                }
+                
                 const jsonStr = jsonMatch ? jsonMatch[0] : content;
                 
-                currentQuestions = JSON.parse(jsonStr);
+                try {
+                    currentQuestions = JSON.parse(jsonStr);
+                    
+                    // Validate structure
+                    if (!Array.isArray(currentQuestions) || currentQuestions.length === 0) {
+                        throw new Error('Invalid questions format');
+                    }
+                    
+                    // Validate each question has required fields
+                    currentQuestions = currentQuestions.filter(q => q.question && q.answer);
+                    
+                    if (currentQuestions.length === 0) {
+                        throw new Error('No valid questions found');
+                    }
+                    
+                    displayQuestions();
+                    
+                } catch (parseError) {
+                    console.error('Parse error:', parseError);
+                    console.error('Content:', content);
+                    throw new Error('Failed to parse questions. Please try again.');
+                }
                 
-                displayQuestions();
             } catch (err) {
                 questionBox.classList.remove('show');
-                showReadingError('Failed to generate questions: ' + err.message);
+                showReadingError('Failed to generate questions: ' + err.message + '. Please try again or use a shorter text.');
+                console.error('Full error:', err);
             } finally {
                 questionsBtn.disabled = false;
             }
