@@ -639,8 +639,7 @@
         vocabBtn.addEventListener('click', toggleVocabList);
         clearVocabBtn.addEventListener('click', clearVocabulary);
         checkAnswersBtn.addEventListener('click', checkAnswers);
-
-        function analyzeText() {
+function analyzeText() {
             currentText = readingInput.value.trim();
             if (!currentText) { showReadingError('Please enter text'); return; }
 
@@ -650,8 +649,9 @@
             questionBox.classList.remove('show');
             vocabList.classList.remove('show');
             
+            // NEW: Make ALL words clickable, not just long ones
             const words = currentText.match(/\b[a-zA-Z]+\b/g) || [];
-            const alltWords = [...new Set(words.filter(word => word.length >= 2))];
+            const allWords = [...new Set(words)]; // Get unique words
             
             let highlightedText = currentText;
             allWords.forEach(word => {
@@ -670,7 +670,7 @@
                 span.addEventListener('click', handleWordClick);
             });
         }
-
+       
         async function handleWordClick(e) {
             const word = e.target.dataset.word;
             const rect = e.target.getBoundingClientRect();
@@ -988,4 +988,5 @@ ${currentText}`
     </script>
 </body>
 </html>
+
 
