@@ -651,10 +651,10 @@
             vocabList.classList.remove('show');
             
             const words = currentText.match(/\b[a-zA-Z]+\b/g) || [];
-            const difficultWords = [...new Set(words.filter(word => word.length >= 8))];
+            const alltWords = [...new Set(words.filter(word => word.length >= 2))];
             
             let highlightedText = currentText;
-            difficultWords.forEach(word => {
+            allWords.forEach(word => {
                 const regex = new RegExp(`\\b(${word})\\b`, 'gi');
                 highlightedText = highlightedText.replace(regex, '<span class="word-highlight" data-word="$1">$1</span>');
             });
@@ -988,3 +988,4 @@ ${currentText}`
     </script>
 </body>
 </html>
+
