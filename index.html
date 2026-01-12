@@ -109,7 +109,7 @@
         }
         .word-correct { background: #d4edda; color: #155724; border: 2px solid #28a745; }
         .word-incorrect { background: #f8d7da; color: #721c24; border: 2px solid #dc3545; }
-        .word-missing { background: #fff3cd; color: #856404; border: 2px solid #ffc107; }
+        .word-missing { background: #ffebee; color: #c62828; border: 2px solid #f44336; }
         .text-display {
             background: #fff; border: 2px solid #ddd; border-radius: 10px;
             padding: 20px; margin: 20px 0; line-height: 1.8;
@@ -198,15 +198,21 @@
         <div class="mode-content active" id="pronunciation-mode">
             <div class="device-info" id="deviceInfo">🔍 Detecting device...</div>
             
-            <div class="practice-guide">
-                <h3>📝 Practice Steps:</h3>
-                <ol>
-                    <li><strong>Listen to Model</strong> - Dengar pronunciation yang benar</li>
-                    <li><strong>Record Your Voice</strong> - Baca text dan rekam sampai selesai</li>
-                    <li><strong>Stop Recording</strong> - Klik stop setelah selesai</li>
-                    <li><strong>Check Pronunciation</strong> - Dapatkan feedback AI</li>
-                </ol>
-            </div>
+          <div class="practice-guide">
+    <h3>📝 Practice Steps:</h3>
+    <ol>
+        <li><strong>Listen to Model</strong> - Dengar pronunciation yang benar</li>
+        <li><strong>Record Your Voice</strong> - Baca text dan rekam sampai selesai</li>
+        <li><strong>Stop Recording</strong> - Klik stop setelah selesai</li>
+        <li><strong>Check Pronunciation</strong> - Dapatkan feedback AI</li>
+    </ol>
+    <div style="margin-top: 12px; padding: 10px; background: #e3f2fd; border-radius: 5px; font-size: 13px;">
+        <strong>📌 Feedback Guide:</strong><br>
+        ✓ <strong>Correct</strong> = Perfect pronunciation<br>
+        ⚠️ <strong>Minor Errors</strong> = Close but needs improvement<br>
+        ❌ <strong>Major Errors</strong> = Very different, listen to model again
+    </div>
+</div>
 
             <div class="listening-indicator" id="listeningIndicator">
                 🔊 Playing model audio... Listen carefully!
@@ -700,12 +706,12 @@
                     statusIcon = ' ✓';
                 } else if (word.status === 'incorrect') {
                     className += 'word-incorrect'; 
-                    statusIcon = ' ✗';
-                    tooltip = ` title="You said: ${word.actual}"`;
+                    statusIcon = ' ⚠️';
+                    tooltip = ` title=" Minor error-You said: ${word.actual}"`;
                 } else {
                     className += 'word-missing'; 
-                    statusIcon = ' ?';
-                    tooltip = ' title="Not detected"';
+                    statusIcon = ' ❌ ';
+                    tooltip = ' title=" Major error- Pronounciation very different or not detected"';
                 }
                 html += `<div class="${className}"${tooltip}>${word.expected}${statusIcon}</div>`;
             });
@@ -713,11 +719,24 @@
             html += '</div>';
             html += `<div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">`;
             html += `<p><strong>Expected:</strong> ${expected}</p><p><strong>You said:</strong> ${actual}</p>`;
-            html += `<p style="margin-top: 10px;"><span style="color: #28a745;">✓ Correct: ${analysis.correct}</span> | `;
-            html += `<span style="color: #dc3545;">✗ Incorrect: ${analysis.incorrect}</span> | `;
-            html += `<span style="color: #ffc107;">? Missing: ${analysis.missing}</span></p></div></div>`;
-            
-            pronunciationResult.innerHTML = html;
+            html += `<p style="margin-top: 15px; padding: 12px;  background: white; border-radius: 6px; border-left: 4px solid #667eea;">`;
+            html += `<strong>📊 Results Breakdown:</strong><br>`;
+    html += `<span style="color: #28a745; font-size: 16px;">✓ Correct: ${analysis.correct} words</span><br>`;
+    html += `<span style="color: #ff9800; font-size: 16px;">⚠️ Minor Errors: ${analysis.incorrect} words</span> <span style="color: #666; font-size: 13px;">(close but needs practice)</span><br>`;
+    html += `<span style="color: #f44336; font-size: 16px;">❌ Major Errors: ${analysis.missing} words</span> <span style="color: #666; font-size: 13px;">(very different - listen to model again)</span>`;
+    html += `</p>`;
+    
+    // Add helpful tip
+    if (analysis.missing > 0) {
+        html += `<div style="margin-top: 15px; padding: 12px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px;">`;
+        html += `<strong>💡 Tip:</strong> For words with major errors (❌), try listening to the model audio again and practice those specific words more carefully.`;
+        html += `</div>`;
+    }
+    
+    html += '</div></div>';
+    
+    pronunciationResult.innerHTML = html;
+}
         }
 
         function showPronunciationError(message) {
@@ -1091,3 +1110,4 @@ ${currentText}`
     </script>
 </body>
 </html>
+
