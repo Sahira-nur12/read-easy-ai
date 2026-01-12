@@ -693,51 +693,38 @@
             return matrix[b.length][a.length];
         }
 
-        function displayFeedback(expected, actual, analysis) {
-            const scoreColor = analysis.accuracy >= 80 ? '#28a745' : analysis.accuracy >= 60 ? '#ffc107' : '#dc3545';
-            let html = '<div class="feedback-container">';
-            html += `<div class="accuracy-score" style="background: ${scoreColor};"><h2>${analysis.accuracy}%</h2><p>Pronunciation Accuracy</p></div>`;
-            html += '<h3 style="margin-bottom: 15px;">📊 Word-by-Word Analysis:</h3><div class="word-analysis">';
-            
-            analysis.words.forEach(word => {
-                let className = 'word-box ', statusIcon = '', tooltip = '';
-                if (word.status === 'correct') {
-                    className += 'word-correct'; 
-                    statusIcon = ' ✓';
-                } else if (word.status === 'incorrect') {
-                    className += 'word-incorrect'; 
-                    statusIcon = ' ⚠️';
-                    tooltip = ` title=" Minor error-You said: ${word.actual}"`;
-                } else {
-                    className += 'word-missing'; 
-                    statusIcon = ' ❌ ';
-                    tooltip = ' title=" Major error- Pronounciation very different or not detected"';
-                }
-                html += `<div class="${className}"${tooltip}>${word.expected}${statusIcon}</div>`;
-            });
-            
-            html += '</div>';
-            html += `<div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">`;
-            html += `<p><strong>Expected:</strong> ${expected}</p><p><strong>You said:</strong> ${actual}</p>`;
-            html += `<p style="margin-top: 15px; padding: 12px;  background: white; border-radius: 6px; border-left: 4px solid #667eea;">`;
-            html += `<strong>📊 Results Breakdown:</strong><br>`;
-    html += `<span style="color: #28a745; font-size: 16px;">✓ Correct: ${analysis.correct} words</span><br>`;
-    html += `<span style="color: #ff9800; font-size: 16px;">⚠️ Minor Errors: ${analysis.incorrect} words</span> <span style="color: #666; font-size: 13px;">(close but needs practice)</span><br>`;
-    html += `<span style="color: #f44336; font-size: 16px;">❌ Major Errors: ${analysis.missing} words</span> <span style="color: #666; font-size: 13px;">(very different - listen to model again)</span>`;
-    html += `</p>`;
+      function displayFeedback(expected, actual, analysis) {
+    const scoreColor = analysis.accuracy >= 80 ? '#28a745' : analysis.accuracy >= 60 ? '#ffc107' : '#dc3545';
+    let html = '<div class="feedback-container">';
+    html += `<div class="accuracy-score" style="background: ${scoreColor};"><h2>${analysis.accuracy}%</h2><p>Pronunciation Accuracy</p></div>`;
+    html += '<h3 style="margin-bottom: 15px;">📊 Word-by-Word Analysis:</h3><div class="word-analysis">';
     
-    // Add helpful tip
-    if (analysis.missing > 0) {
-        html += `<div style="margin-top: 15px; padding: 12px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px;">`;
-        html += `<strong>💡 Tip:</strong> For words with major errors (❌), try listening to the model audio again and practice those specific words more carefully.`;
-        html += `</div>`;
-    }
+    analysis.words.forEach(word => {
+        let className = 'word-box ', statusIcon = '', tooltip = '';
+        if (word.status === 'correct') {
+            className += 'word-correct'; 
+            statusIcon = ' ✓';
+        } else if (word.status === 'incorrect') {
+            className += 'word-incorrect'; 
+            statusIcon = ' ⚠️';
+            tooltip = ` title="Minor error - You said: ${word.actual}"`;
+        } else {
+            className += 'word-missing'; 
+            statusIcon = ' ❌';
+            tooltip = ' title="Major error - Very different or not detected"';
+        }
+        html += `<div class="${className}"${tooltip}>${word.expected}${statusIcon}</div>`;
+    });
     
-    html += '</div></div>';
+    html += '</div>';
+    html += `<div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">`;
+    html += `<p><strong>Expected:</strong> ${expected}</p><p><strong>You said:</strong> ${actual}</p>`;
+    html += `<p style="margin-top: 10px;"><span style="color: #28a745;">✓ Correct: ${analysis.correct}</span> | `;
+    html += `<span style="color: #ff9800;">⚠️ Minor Errors: ${analysis.incorrect}</span> | `;
+    html += `<span style="color: #f44336;">❌ Major Errors: ${analysis.missing}</span></p></div></div>`;
     
     pronunciationResult.innerHTML = html;
 }
-        }
 
         function showPronunciationError(message) {
             pronunciationError.textContent = '❌ ' + message;
@@ -1110,4 +1097,5 @@ ${currentText}`
     </script>
 </body>
 </html>
+
 
